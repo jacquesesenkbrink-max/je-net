@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mijn Life Dashboard</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="data.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #6c5ce7; 
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.8);
+            --text-dark: #2d3436;
+            --text-light: #636e72;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+            background: linear-gradient(120deg, #a18cd1 0%, #fbc2eb 100%);
+            background-size: 200% 200%;
+            animation: gradientMove 15s ease infinite;
+            transition: background 0.5s ease;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 90vh;
+            justify-content: center;
+        }
+
+        /* LOGIN */
+        #login-screen {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 350px;
+            width: 100%;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 2px solid #dfe6e9;
+            border-radius: 12px;
+            font-size: 16px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .btn-main {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+        }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3); }
+
+        /* DASHBOARD */
+        #dashboard { display: none; width: 100%; }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 20px 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        /* Begroeting Box: Nu interactief */
+        .greeting-box {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            position: relative;
+        }
+
+        .greeting-box:hover {
+            transform: scale(1.02);
+        }
+        
+        /* Tooltip-achtig labeltje bij hover */
+        .greeting-box:hover::after {
+            content: "Start Oefening →";
+            position: absolute;
+            top: -20px;
+            left: 0;
+            font-size: 0.7rem;
+            color: var(--primary-color);
+            font-weight: bold;
+            background: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .greeting-box h1 { margin: 0; font-size: 1.8rem; font-weight: 600; }
+        .quote { font-style: italic; color: var(--text-light); font-size: 0.9rem; margin-top: 5px; max-width: 500px; }
+        
+        .weather-box {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-weight: 500;
+        }
+        .weather-box i { font-size: 1.5rem; margin-right: 10px; color: #fdcb6e; }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: rgba(255,255,255,0.4);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-light);
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            width: 100%;
+        }
+
+        .app-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(5px);
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1/1;
+        }
+
+        .app-card:hover {
+            transform: translateY(-5px);
+            background: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+
+        .app-icon { font-size: 2.2rem; color: var(--primary-color); margin-bottom: 15px; }
+        .app-title { font-weight: 500; font-size: 1rem; }
+
+        .footer-controls {
+            margin-top: 40px;
+            display: flex;
+            gap: 15px;
+        }
+        .small-btn {
+            background: rgba(0,0,0,0.1);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 600px) {
+            .header-section { flex-direction: column; text-align: center; }
+            .app-grid { grid-template-columns: repeat(2, 1fr); }
+            .greeting-box:hover::after { left: 50%; transform: translateX(-50%); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div id="login-screen">
+            <h2>👋 Welkom</h2>
+            <p style="color:#636e72;">Je dashboard is vergrendeld.</p>
+            <input type="password" id="passwordInput" placeholder="Wachtwoord" onkeyup="if(event.key === 'Enter') checkLogin()">
+            <button class="btn-main" onclick="checkLogin()">Ontgrendelen</button>
+            <p id="error-msg" style="color:red; display:none; margin-top:10px; font-size:0.9rem;">Verkeerde code</p>
+        </div>
+
+        <div id="dashboard">
+            
+            <div class="header-section">
+                <div class="greeting-box" onclick="startPraxis()">
+                    <h1 id="greeting-text">Goedemorgen</h1>
+                    <div id="quote-text" class="quote">...</div>
+                    <div style="font-size: 0.75rem; color: var(--primary-color); margin-top: 5px; font-weight: bold;">
+                        <i class="fas fa-play-circle"></i> Start dagelijkse wijsheid
+                    </div>
+                </div>
+                <div class="weather-box">
+                    <i class="fas fa-sun" id="weather-icon"></i>
+                    <span id="weather-text">Laden...</span>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('dagelijks')">Dagelijks</button>
+                <button class="tab-btn" onclick="switchTab('admin')">Admin</button>
+                <button class="tab-btn" onclick="switchTab('media')">Media</button>
+            </div>
+
+            <div id="app-container" class="app-grid">
+            </div>
+
+            <div class="footer-controls">
+                <button class="small-btn" onclick="toggleBackground()"><i class="fas fa-image"></i> Achtergrond Wisselen</button>
+                <button class="small-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Uitloggen</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const WACHTWOORD = "Geheim4321"; 
+        
+        // JOUW APPS
+        const myApps = [
+            { id: 1, cat: 'dagelijks', name: "Boodschappen", icon: "fa-shopping-basket", action: "window.location.href = 'Boodschappen-thuis.html'" },
+            { id: 2, cat: 'dagelijks', name: "Agenda", icon: "fa-calendar-day", action: "window.open('https://calendar.google.com', '_blank')" },
+            { id: 3, cat: 'dagelijks', name: "Taken", icon: "fa-check-double", action: "window.location.href = 'timemanager.html'" },
+            { id: 4, cat: 'admin', name: "Financiën", icon: "fa-euro-sign", action: "alert('Financieel overzicht')" },
+            { id: 5, cat: 'admin', name: "E-mail", icon: "fa-envelope", action: "window.open('https://gmail.com', '_blank')" },
+            { id: 6, cat: 'media', name: "Netflix", icon: "fa-play", action: "window.open('https://netflix.com', '_blank')" },
+            { id: 7, cat: 'media', name: "Spotify", icon: "fa-music", action: "window.open('https://spotify.com', '_blank')" },
+            { id: 8, cat: 'dagelijks', name: "Buienradar", icon: "fa-cloud-showers-heavy", action: "window.open('https://buienradar.nl', '_blank')" }
+        ];
+
+        // VARIABELEN
+        let todaysQuoteId = 0; // Wordt random gekozen
+
+        // LOGICA
+        
+        if(localStorage.getItem('dashboard_access') === 'true') {
+            openDashboard();
+        }
+
+        function checkLogin() {
+            if(document.getElementById('passwordInput').value === WACHTWOORD) {
+                localStorage.setItem('dashboard_access', 'true');
+                openDashboard();
+            } else {
+                document.getElementById('error-msg').style.display = 'block';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('dashboard_access');
+            location.reload();
+        }
+
+        function openDashboard() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            
+            updateGreeting();
+            setRandomQuote();
+            fetchWeather();
+            switchTab('dagelijks');
+        }
+
+        function switchTab(category) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const container = document.getElementById('app-container');
+            container.innerHTML = '';
+            
+            const filteredApps = myApps.filter(app => app.cat === category);
+            
+            filteredApps.forEach(app => {
+                const div = document.createElement('div');
+                div.className = 'app-card';
+                div.onclick = function() { eval(app.action); };
+                div.innerHTML = `
+                    <i class="fas ${app.icon} app-icon"></i>
+                    <div class="app-title">${app.name}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateGreeting() {
+            const uur = new Date().getHours();
+            let tekst = "Goedennacht";
+            if(uur >= 6) tekst = "Goedemorgen";
+            if(uur >= 12) tekst = "Goedemiddag";
+            if(uur >= 18) tekst = "Goedenavond";
+            document.getElementById('greeting-text').innerText = tekst + ", Jacques";
+        }
+
+        // Vernieuwde functie: gebruikt nu quotesData uit data.js
+            function setRandomQuote() {
+            // 1. Wat is de datum van vandaag? (bijv. "Mon Dec 08 2025")
+            const todayStr = new Date().toDateString();
+            
+            // 2. Wat staat er in het geheugen?
+            const storedDate = localStorage.getItem('praxis_date');
+            const storedId = localStorage.getItem('praxis_id');
+
+            // 3. Check: Is het dezelfde dag EN hebben we een ID?
+            if (storedDate === todayStr && storedId !== null) {
+                // Ja: Gebruik de opgeslagen quote
+                todaysQuoteId = parseInt(storedId);
+            } else {
+                // Nee: Het is een nieuwe dag (of eerste keer). Kies een nieuwe!
+                todaysQuoteId = Math.floor(Math.random() * quotesData.length);
+                
+                // Sla op voor de rest van de dag
+                localStorage.setItem('praxis_date', todayStr);
+                localStorage.setItem('praxis_id', todaysQuoteId);
+            }
+
+            // 4. Toon de quote
+            const q = quotesData[todaysQuoteId];
+            document.getElementById('quote-text').innerText = `"${q.quote}" - ${q.author}`;
+        }
+
+        // Functie om naar praxis te gaan mét het juiste ID
+        function startPraxis() {
+            window.location.href = `praxis.html?id=${todaysQuoteId}`;
+        }
+
+        async function fetchWeather() {
+            try {
+                const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=52.09&longitude=5.12&current_weather=true');
+                const data = await response.json();
+                const temp = Math.round(data.current_weather.temperature);
+                document.getElementById('weather-text').innerText = `${temp}°C`;
+            } catch (e) {
+                document.getElementById('weather-text').innerText = "--";
+            }
+        }
+
+        let bgMode = 'pastel';
+        function toggleBackground() {
+            if(bgMode === 'pastel') {
+                document.body.style.background = "url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80') no-repeat center center fixed";
+                document.body.style.backgroundSize = "cover";
+                bgMode = 'photo';
+            } else {
+                document.body.style.background = "linear-gradient(120deg, #a18cd1 0%, #fbc2eb 100%)";
+                document.body.style.backgroundSize = "200% 200%";
+                bgMode = 'pastel';
+            }
+        }
+    </script>
+</body>
+</html>
