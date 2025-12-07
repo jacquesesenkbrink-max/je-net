@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mijn Weekmenu & Boodschappen (Responsive)</title>
+    <style>
+        /* --- ALGEMENE STIJL --- */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f8; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+        
+        h1, h2 { text-align: center; color: #2c3e50; margin-bottom: 10px; }
+        h1 { font-size: 1.8rem; }
+        .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 25px; font-size: 0.9rem; }
+
+        /* --- PLANNER (PC DEFAULT) --- */
+        .day-row { display: flex; align-items: center; background: #fff; border-bottom: 1px solid #eee; padding: 12px 5px; gap: 10px; }
+        .day-label { font-weight: 700; width: 90px; color: #2c3e50; font-size: 0.9rem; flex-shrink: 0; } /* flex-shrink: 0 zorgt dat tekst niet plet */
+        .day-select { flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95rem; background: white; max-width: 100%; }
+        .person-input-group { display: flex; align-items: center; gap: 5px; background: #f9f9f9; padding: 5px 10px; border-radius: 6px; border: 1px solid #eee; flex-shrink: 0; }
+        .person-input { width: 40px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-weight: bold; }
+
+        /* --- BASICS --- */
+        .basics-section { background: #fafafa; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid #eee; }
+        .basics-input-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .basics-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .basic-item { display: flex; align-items: center; background: white; padding: 8px; border-radius: 6px; border: 1px solid #e0e0e0; font-size: 0.9rem; }
+        .basic-qty { width: 35px; padding: 3px; margin: 0 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
+        .basic-del { margin-left: auto; color: #e74c3c; cursor: pointer; font-weight: bold; padding: 0 5px; font-size: 1.2rem; }
+        
+        /* --- KNOPPEN --- */
+        .btn-group { display: flex; gap: 10px; margin-top: 25px; }
+        button { border: none; padding: 14px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; flex: 1; transition: 0.2s; color: white; display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .btn-calc { background-color: #27ae60; } .btn-calc:hover { background-color: #219150; }
+        .btn-book { background-color: #e67e22; } .btn-book:hover { background-color: #d35400; }
+        .btn-clear { background-color: #95a5a6; max-width: 60px; flex: 0 0 60px; } /* Fixed width voor prullenbak */
+        
+        .btn-toggle { background-color: #34495e; font-size: 0.9rem; padding: 10px; margin-bottom: 15px; width: 100%; color: white;}
+        .action-btn { width: 100%; margin-top: 10px; padding: 12px; }
+        .btn-whatsapp { background-color: #25D366; }
+
+        /* --- LIJSTEN --- */
+        .view-section { display: none; margin-top: 30px; border-top: 2px dashed #eee; padding-top: 20px; animation: fadeIn 0.4s; }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        .category-header { background-color: #34495e; color: white; padding: 8px 12px; border-radius: 6px; margin-top: 15px; font-weight: bold; font-size: 0.9rem; }
+        .shopping-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; transition: 0.2s; }
+        .shopping-item input { margin-right: 12px; transform: scale(1.3); cursor: pointer; accent-color: #aaa; }
+        .shopping-item label { flex-grow: 1; cursor: pointer; display: flex; align-items: center; flex-wrap: wrap;}
+        .shopping-item.checked { color: #aaa; text-decoration: line-through; background-color: #fcfcfc; }
+        .shopping-item.hidden { display: none; }
+        .store-tag { font-size: 0.7em; padding: 2px 6px; border-radius: 4px; margin-left: auto; font-weight: bold; text-transform: uppercase; text-decoration: none !important; display: inline-block; white-space: nowrap; }
+        .tag-lidl { background-color: #fff3e0; color: #ef6c00; }
+        .tag-eko { background-color: #e8f5e9; color: #2e7d32; }
+
+        /* --- 📱 MOBIELE AANPASSINGEN (DE FIX) --- */
+        @media (max-width: 600px) {
+            body { padding: 10px; } /* Minder rand om de app */
+            .container { padding: 15px; } 
+
+            /* Planner regels onder elkaar zetten */
+            .day-row { flex-wrap: wrap; gap: 5px; }
+            .day-label { width: 100%; margin-bottom: 2px; font-size: 1rem; color: #34495e; }
+            .day-select { flex-grow: 10; min-width: 0; } /* Neemt de meeste ruimte in */
+            .person-input-group { flex-grow: 1; } /* Past ernaast */
+
+            /* Knoppen stapelen */
+            .btn-group { flex-wrap: wrap; }
+            .btn-calc, .btn-book { flex: 1 1 100%; margin-bottom: 5px; } /* Volle breedte */
+            .btn-clear { flex: 1 1 100%; max-width: 100%; background-color: #e74c3c; margin-top:5px; } /* Prullenbak ook groot en rood op mobiel */
+
+            /* Basics lijst iets compacter */
+            .basics-list { grid-template-columns: 1fr; } /* 1 kolom op mobiel */
+        }
+
+        /* PRINT STIJL */
+        @media print {
+            .no-print, .btn-group, .basics-section, #planner-area, .info-box { display: none !important; }
+            .view-section { display: block !important; border: none; }
+            .shopping-item.checked { display: none; }
+            .recipe-page { page-break-inside: avoid; border: 1px solid #ccc; margin-bottom: 20px; padding: 20px; }
+            body, .container { box-shadow: none; margin: 0; padding: 0; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="no-print">🥑 Weekmenu Planner</h1>
+    <p class="subtitle no-print">Plan, check je voorraad & shop</p>
+
+    <div id="planner-area" class="no-print">
+        </div>
+
+    <div class="basics-section no-print">
+        <h3 style="margin-top:0;">🏡 Standaard Items</h3>
+        <p style="font-size:0.85rem; color:#666; margin-bottom:10px;">Dingen die je vaak nodig hebt.</p>
+        <div class="basics-input-row">
+            <input type="text" id="new-basic-name" placeholder="Typ hier (bv. Koffie)..." style="flex-grow:1; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:16px;">
+            <button onclick="addBasicItem()" style="flex:0; padding:10px 20px; background:#3498db;">+</button>
+        </div>
+        <div id="basics-list" class="basics-list"></div>
+    </div>
+
+    <div class="btn-group no-print">
+        <button class="btn-calc" onclick="showShoppingList()">🛒 Maak Lijst</button>
+        <button class="btn-book" onclick="showBooklet()">📖 Boekje</button>
+        <button class="btn-clear" onclick="clearWeek()" title="Wis planning">🗑️ Wis</button>
+    </div>
+
+    <div id="view-shopping" class="view-section">
+        <h2>🛒 Boodschappenlijst</h2>
+        
+        <button class="btn-toggle no-print" onclick="toggleCheckedItems()">👁️ Verberg / Toon wat ik al heb</button>
+
+        <div id="shopping-list-content"></div>
+        
+        <button class="action-btn btn-whatsapp no-print" onclick="copyToClipboard()">📱 Kopieer (voor WhatsApp/Notities)</button>
+        <button class="action-btn no-print" onclick="window.print()" style="background:#3498db;">🖨️ Print Lijst</button>
+    </div>
+
+    <div id="view-booklet" class="view-section">
+        <h2 class="no-print">📖 Weekboekje</h2>
+        <div id="booklet-content"></div>
+        <button class="action-btn no-print" onclick="window.print()" style="background:#3498db;">🖨️ Print Boekje</button>
+    </div>
+</div>
+
+<script>
+    // --- 1. RECEPTEN DATABASE ---
+    const recipesDB = {
+        "Orzo Ratatouille": {
+            ing: { "AGF": ["1 Rode paprika", "1 Gele paprika", "1 Aubergine", "1 Courgette", "1 Rode ui", "250g Cherrytomaatjes", "200g Spinazie", "2 tenen Knoflook", "Verse Basilicum"], "Houdbaar": ["300g Orzo", "1 blik Tomatenblokjes", "1 blik Kikkererwten", "1 el Tahin", "Pijnboompitten", "Groentebouillon", "Olijfolie", "Italiaanse kruiden"] },
+            steps: ["Oven 200gr. Snijd groenten.", "Rooster groenten 30 min met olie/kruiden.", "Kook orzo met tomatenblokjes 8 min.", "Voeg tahin, spinazie, kikkererwten toe.", "Meng groenten erdoor."]
+        },
+        "Ratatouille Curry": {
+            ing: { "AGF": ["1 Rode ui", "3 tenen Knoflook", "3 Tomaten", "1 Zoete aardappel", "1 Aubergine", "Verse Basilicum"], "Houdbaar": ["250g Pompoenpuree/blokjes", "400g Tomatenblokjes", "1 el Tomatenpuree", "1 blik Kokosmelk", "Gele currypasta"] },
+            steps: ["Fruit ui/knoflook. Bak currypasta.", "Voeg zoete aardappel, aubergine, puree toe (5 min).", "Voeg tomaatblokjes + kokosmelk toe.", "Sudderen 20 min."]
+        },
+        "Eenpansgerecht Orzo & Feta": {
+            ing: { "AGF": ["1 Ui", "3 tenen Knoflook", "500g Cherrytomaatjes", "1 Rode paprika", "Verse Basilicum"], "Houdbaar": ["200g Orzo", "1 el Tomatenpuree", "500ml Groentebouillon", "Italiaanse kruiden", "Olijfolie"], "Zuivel/Koeling": ["75g Vegan Feta"] },
+            steps: ["Fruit ui/knoflook.", "Voeg orzo, puree, tomaatjes, paprika toe.", "Voeg bouillon toe, kook 10 min.", "Garneer met feta."]
+        },
+        "Gevulde Aubergine (Linzen)": {
+            ing: { "AGF": ["2 Aubergines", "1 Rode ui", "3 tenen Knoflook", "1 Gele paprika", "2 Tomaten", "Verse Peterselie"], "Houdbaar": ["2 el Tomatenpuree", "200g Tomatenblokjes", "1 blik Bruine Linzen", "25g Pijnboompitten", "Komijnpoeder"] },
+            steps: ["Oven 200gr. Halveer/hol aubergines uit. Bak 20 min.", "Bak ui, knoflook, paprika en vruchtvlees.", "Voeg puree, blokjes, linzen toe.", "Vul aubergines, bak nog 15 min."]
+        },
+        "Romige Paddenstoelen Risotto": {
+            ing: { "AGF": ["250g Kastanjechampignons", "1 Gele ui", "3 tenen Knoflook", "Verse Peterselie"], "Houdbaar": ["300g Risotto rijst", "1L Groentebouillon", "Edelgistvlokken", "Olijfolie", "Balsamico azijn"] },
+            steps: ["Bak champignons bruin, zet apart.", "Fruit ui/knoflook. Bak rijst glazig.", "Voeg beetje bij beetje bouillon toe (20 min).", "Roer champignons en edelgist erdoor."]
+        },
+        "Romige Tomaten Risotto": {
+            ing: { "AGF": ["1 Gele ui", "3 tenen Knoflook", "500g Honingtomaten", "Verse Basilicum"], "Houdbaar": ["300g Risotto rijst", "1 blik Tomatenblokjes", "700ml Groentebouillon", "Olijfolie"] },
+            steps: ["Rooster tomaatjes.", "Fruit ui/knoflook, bak rijst mee.", "Voeg tomatenblokjes en bouillon stapsgewijs toe.", "Kook gaar, meng geroosterde tomaten erdoor."]
+        }
+    };
+
+    const daysOfWeek = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"];
+    let myBasics = [];
+
+    // --- 2. INITIALISATIE ---
+    window.onload = function() { 
+        buildPlanner(); 
+        loadData(); 
+        renderBasicsList(); 
+        
+        document.getElementById("new-basic-name").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                addBasicItem();
+            }
+        });
+    };
+
+    function buildPlanner() {
+        const container = document.getElementById('planner-area');
+        let optionsHtml = `<option value="">-- Kies gerecht --</option>`;
+        for (let r in recipesDB) { optionsHtml += `<option value="${r}">${r}</option>`; }
+        daysOfWeek.forEach((day, i) => {
+            container.innerHTML += `
+            <div class="day-row">
+                <div class="day-label">${day}</div>
+                <select id="recipe-${i}" class="day-select" onchange="saveData()">${optionsHtml}</select>
+                <div class="person-input-group"><span style="font-size:0.8em">Pers:</span><input type="number" id="pers-${i}" class="person-input" value="4" min="1" onchange="saveData()"></div>
+            </div>`;
+        });
+    }
+
+    // --- 3. OPSLAAN & LADEN ---
+    function saveData() {
+        let plan = {};
+        daysOfWeek.forEach((_, i) => {
+            plan[`r-${i}`] = document.getElementById(`recipe-${i}`).value;
+            plan[`p-${i}`] = document.getElementById(`pers-${i}`).value;
+        });
+        localStorage.setItem('App_WeekPlan', JSON.stringify(plan));
+        localStorage.setItem('App_Basics', JSON.stringify(myBasics));
+    }
+
+    function loadData() {
+        let plan = JSON.parse(localStorage.getItem('App_WeekPlan'));
+        if (plan) daysOfWeek.forEach((_, i) => {
+            if(plan[`r-${i}`]) document.getElementById(`recipe-${i}`).value = plan[`r-${i}`];
+            if(plan[`p-${i}`]) document.getElementById(`pers-${i}`).value = plan[`p-${i}`];
+        });
+
+        let savedBasics = JSON.parse(localStorage.getItem('App_Basics'));
+        if (savedBasics && Array.isArray(savedBasics)) {
+            myBasics = savedBasics;
+        }
+    }
+
+    function clearWeek() {
+        if(confirm("Planning wissen? (Je standaard items blijven bewaard)")) {
+            daysOfWeek.forEach((_, i) => { document.getElementById(`recipe-${i}`).value = ""; document.getElementById(`pers-${i}`).value = "4"; });
+            saveData();
+        }
+    }
+
+    // --- 4. BASICS LOGICA ---
+    function addBasicItem() {
+        let input = document.getElementById('new-basic-name');
+        let name = input.value.trim();
+        if(name) { 
+            myBasics.push({ name: name, qty: 1, checked: true });
+            input.value = ""; 
+            saveData(); 
+            renderBasicsList(); 
+        }
+    }
+    function toggleBasic(i) { myBasics[i].checked = !myBasics[i].checked; saveData(); }
+    function updateBasicQty(i, v) { myBasics[i].qty = v; saveData(); }
+    function deleteBasic(i) { myBasics.splice(i, 1); saveData(); renderBasicsList(); }
+    
+    function renderBasicsList() {
+        const list = document.getElementById('basics-list');
+        list.innerHTML = '';
+        myBasics.forEach((item, i) => {
+            list.innerHTML += `
+            <div class="basic-item" title="Vink aan als je dit deze week nodig hebt">
+                <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleBasic(${i})">
+                <input type="number" class="basic-qty" value="${item.qty}" min="1" onchange="updateBasicQty(${i}, this.value)">
+                <span style="flex-grow:1; margin-left:5px;">${item.name}</span>
+                <span class="basic-del" onclick="deleteBasic(${i})">×</span>
+            </div>`;
+        });
+    }
+
+    // --- 5. SHOPPING & BOOKLET LOGICA ---
+    function scaleIngredientString(ingString, persons) {
+        if (persons == 4) return ingString;
+        return ingString.replace(/(\d+([.,]\d+)?)/, (match) => {
+            let num = parseFloat(match.replace(',', '.'));
+            let newNum = (num / 4) * persons;
+            if (newNum % 1 === 0) return newNum;
+            return newNum.toFixed(1).replace('.', ','); 
+        });
+    }
+
+    function showShoppingList() {
+        document.getElementById('view-shopping').classList.add('active');
+        document.getElementById('view-booklet').classList.remove('active');
+        saveData();
+
+        let finalList = [];
+        
+        daysOfWeek.forEach((_, i) => {
+            let rName = document.getElementById(`recipe-${i}`).value;
+            let pCount = parseFloat(document.getElementById(`pers-${i}`).value) || 4;
+            if (rName && recipesDB[rName]) {
+                let ing = recipesDB[rName].ing;
+                for (let cat in ing) {
+                    ing[cat].forEach(raw => finalList.push({ category: cat, product: scaleIngredientString(raw, pCount) }));
+                }
+            }
+        });
+
+        myBasics.forEach(b => {
+            if(b.checked) finalList.push({ category: classifyItem(b.name), product: b.qty > 1 ? `${b.qty}x ${b.name}` : b.name });
+        });
+
+        const route = ["AGF", "Vers/Koeling", "Zuivel/Koeling", "Houdbaar", "Diepvries", "Huishouden", "Overig"];
+        let sorted = {}; route.forEach(c => sorted[c] = []);
+        finalList.forEach(item => {
+            let c = route.includes(item.category) ? item.category : "Overig";
+            sorted[c].push(item);
+        });
+
+        const output = document.getElementById('shopping-list-content');
+        output.innerHTML = '';
+
+        route.forEach(cat => {
+            if(sorted[cat].length > 0) {
+                let catName = mapCategoryName(cat);
+                let catDiv = document.createElement('div');
+                catDiv.innerHTML = `<div class="category-header">${catName}</div>`;
+                
+                sorted[cat].forEach(item => {
+                    let tag = getStoreTag(item.product);
+                    let row = document.createElement('div');
+                    row.className = "shopping-item";
+                    row.innerHTML = `
+                        <input type="checkbox" onchange="toggleLine(this)">
+                        <label onclick="this.previousElementSibling.click()">
+                            <span>${item.product}</span>
+                            ${tag ? tag.html : ''}
+                        </label>
+                    `;
+                    catDiv.appendChild(row);
+                });
+                output.appendChild(catDiv);
+            }
+        });
+        document.getElementById('view-shopping').scrollIntoView({behavior:'smooth'});
+    }
+
+    function toggleLine(checkbox) {
+        let row = checkbox.closest('.shopping-item');
+        if(checkbox.checked) row.classList.add('checked');
+        else row.classList.remove('checked');
+    }
+
+    function toggleCheckedItems() {
+        let items = document.querySelectorAll('.shopping-item.checked');
+        let btn = document.querySelector('.btn-toggle');
+        let currentlyHidden = btn.innerText.includes("Toon");
+        
+        items.forEach(item => item.classList.toggle('hidden'));
+        
+        if(currentlyHidden) btn.innerText = "👁️ Verberg wat ik al heb";
+        else btn.innerText = "👁️ Toon wat ik al heb";
+    }
+
+    function copyToClipboard() {
+        let text = "🛒 *Boodschappenlijst*\n\n";
+        let headers = document.querySelectorAll('.category-header');
+        
+        headers.forEach(header => {
+            let parentDiv = header.parentElement;
+            let items = parentDiv.querySelectorAll('.shopping-item');
+            let hasItemsToBuy = false;
+            let catText = `*${header.innerText}*\n`;
+
+            items.forEach(item => {
+                let checkbox = item.querySelector('input');
+                if(!checkbox.checked) {
+                    hasItemsToBuy = true;
+                    let txt = item.querySelector('span').innerText;
+                    let tag = item.querySelector('.store-tag');
+                    catText += `- ${txt} ${tag ? '('+tag.innerText+')' : ''}\n`;
+                }
+            });
+
+            if(hasItemsToBuy) text += catText + "\n";
+        });
+
+        if(text === "🛒 *Boodschappenlijst*\n\n") alert("Alles is afgevinkt! Je hoeft niets te kopen.");
+        else navigator.clipboard.writeText(text).then(() => alert("Lijst gekopieerd!"));
+    }
+
+    function showBooklet() {
+        document.getElementById('view-booklet').classList.add('active');
+        document.getElementById('view-shopping').classList.remove('active');
+        const content = document.getElementById('booklet-content');
+        content.innerHTML = '';
+        daysOfWeek.forEach((day, i) => {
+            let rName = document.getElementById(`recipe-${i}`).value;
+            let pCount = document.getElementById(`pers-${i}`).value;
+            if(rName) {
+                let r = recipesDB[rName];
+                content.innerHTML += `
+                    <div class="recipe-page">
+                        <div style="font-weight:bold; color:#e67e22;">${day} (${pCount} pers.)</div>
+                        <div class="recipe-title">${rName}</div>
+                        <strong>Ingrediënten:</strong><ul>${Object.values(r.ing).flat().map(ing => `<li>${scaleIngredientString(ing, pCount)}</li>`).join('')}</ul>
+                        <strong>Bereiding:</strong><ol>${r.steps.map(s => `<li>${s}</li>`).join('')}</ol>
+                    </div>`;
+            }
+        });
+        document.getElementById('view-booklet').scrollIntoView({behavior:'smooth'});
+    }
+
+    function classifyItem(i) {
+        i = i.toLowerCase();
+        if(i.match(/papier|wasmiddel|tandpasta|zakken|schoonmaak/)) return "Huishouden";
+        if(i.match(/melk|kaas|yoghurt|boter|ei|kwark/)) return "Zuivel/Koeling";
+        if(i.match(/vlees|vis|kip|vega|gehakt/)) return "Vers/Koeling";
+        if(i.match(/brood|rijst|pasta|saus|koffie|thee|olie|koek|chips/)) return "Houdbaar";
+        if(i.match(/appel|banaan|ui|knoflook|tomaat|paprika|groente|fruit|sla|komkommer/)) return "AGF";
+        return "Overig";
+    }
+
+    function getStoreTag(p) {
+        p = p.toLowerCase();
+        if(p.includes("edelgist")||p.includes("tahin")) return {html: '<span class="store-tag tag-eko">EKO</span>', text: 'EKO'};
+        if(p.includes("wc")||p.includes("papier")||p.includes("courgette")) return {html: '<span class="store-tag tag-lidl">LIDL</span>', text: 'LIDL'};
+        return null;
+    }
+    function mapCategoryName(c) {
+        const map = {"AGF":"🥦 Groente & Fruit", "Vers/Koeling":"🥩 Vers & Vega", "Houdbaar":"🍝 Voorraadkast", "Zuivel/Koeling":"🥛 Zuivel", "Huishouden":"🧻 Huishouden"};
+        return map[c] || c;
+    }
+</script>
+
+</body>
+</html>
