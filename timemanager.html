@@ -1,0 +1,179 @@
+<script>
+        let tasks = [];
+        
+        // --- VEILIGE START ---
+        // We wachten tot de pagina helemaal geladen is voordat we iets doen
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTasks();
+        });
+
+        // --- COMMUNICATIE MET DE SERVER ---
+        async function loadTasks() {
+            updateStatus('Laden...', '#e3f2fd');
+            
+            try {
+                // Check of we wel op een server zitten
+                if (window.location.protocol === 'file:') {
+                    throw new Error("Je opent dit bestand lokaal (file://). PHP werkt alleen op een webserver (http://).");
+                }
+
+                // Voeg tijd toe om caching te voorkomen
+                const response = await fetch('tasks.json?t=' + Date.now());
+                
+                if (!response.ok) {
+                    // Als tasks.json nog niet bestaat of niet leesbaar is, beginnen we leeg
+                    if(response.status === 404) {
+                        console.log("Tasks.json nog niet gevonden, we beginnen leeg.");
+                        tasks = [];
+                        render();
+                        updateStatus('Nieuw Bestand', '#eee');
+                        return;
+                    }
+                    throw new Error(`Server status: ${response.status}`);
+                }
+                
+                // Probeer de JSON te lezen
+                const textData = await response.text();
+                // Als het bestand leeg is, maak er een lege lijst van
+                tasks = textData ? JSON.parse(textData) : [];
+                
+                render();
+                updateStatus('Online', '#d1e7dd');
+
+            } catch (error) {
+                console.error("Fout:", error);
+                // Toon de fout op het scherm zodat je weet wat er mis is
+                updateStatus(⚠️ Fout (zie console)', '#f8d7da');
+                alert("Let op: " + error.message + "\n\nDe pagina laadt nu in 'Offline modus', wijzigingen worden NIET opgeslagen op de server.");
+                render(); // Toch de pagina opbouwen!
+            }
+        }
+
+        async function saveTasks() {
+            // Als we lokaal werken, stop meteen
+            if (window.location.protocol === 'file:') {
+                alert("Kan niet opslaan: Je werkt lokaal.");
+                return;
+            }
+
+            updateStatus('Opslaan...', '#fff3cd');
+            try {
+                const response = await fetch('save_tasks.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(tasks)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.status !== 'error') {
+                    updateStatus('Opgeslagen', '#d1e7dd');
+                } else {
+                    throw new Error(result.message || "Server error");
+                }
+            } catch (error) {
+                console.error("Opslaan mislukt:", error);
+                updateStatus('Niet opgeslagen!', '#f8d7da');
+                alert("FOUT BIJ OPSLAAN:\nControleer of 'tasks.json' schrijf-rechten (777) heeft op de server.");
+            }
+        }
+
+        function updateStatus(msg, color) {
+            const el = document.getElementById('syncStatus');
+            if(el) {
+                el.innerText = msg;
+                el.style.background = color;
+            }
+        }
+
+        // --- APPLICATIE LOGICA ---
+        function handleEnter(e) { if (e.key === 'Enter') addTask(); }
+
+        function addTask() {
+            const textEl = document.getElementById('taskInput');
+            const text = textEl.value;
+            const q = parseInt(document.getElementById('quadrantInput').value);
+            const p = parseInt(document.getElementById('priorityInput').value);
+
+            if (!text.trim()) return;
+
+            tasks.push({ id: Date.now(), text, q, p });
+            textEl.value = '';
+            render();
+            saveTasks(); 
+        }
+
+        function removeTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            render();
+            saveTasks();
+        }
+
+        function clearAll() {
+            if(confirm("Alles wissen voor een nieuwe dag? (Ideeën blijven bewaard)")) {
+                tasks = tasks.filter(t => t.q === 0);
+                render();
+                saveTasks();
+            }
+        }
+
+        function getStar(p) { return p === 5 ? "🔥" : "★".repeat(p); }
+        function getColor(q) { 
+            if(q==1) return '#cc0000'; if(q==2) return '#009900'; 
+            if(q==3) return '#e6b800'; return '#999'; 
+        }
+
+        function render() {
+            // Veiligheidscheck: als DOM elementen nog niet bestaan, stop
+            const listEl = document.querySelector('#smartList ol');
+            if(!listEl) return;
+
+            document.querySelectorAll('.task-container').forEach(el => el.innerHTML = '');
+            const ideaEl = document.getElementById('ideaList');
+            listEl.innerHTML = '';
+            ideaEl.innerHTML = '';
+
+            const sorted = [...tasks].sort((a,b) => {
+                if(a.q !== b.q) return a.q - b.q;
+                return b.p - a.p;
+            });
+
+            let actionCount = 0;
+
+            sorted.forEach(t => {
+                // 1. BRAIN DUMP (Q=0)
+                if (t.q === 0) {
+                    const div = document.createElement('div');
+                    div.style.borderBottom = '1px dashed #ccc'; div.style.padding = '6px 0';
+                    div.style.display = 'flex'; div.style.justifyContent = 'space-between';
+                    div.innerHTML = `<span>NOTE: ${t.text}</span> <span onclick="removeTask(${t.id})" style="cursor:pointer; color:#888;">×</span>`;
+                    if(ideaEl) ideaEl.appendChild(div);
+                    return;
+                }
+
+                // 2. MATRIX VIEW
+                const div = document.createElement('div');
+                div.style.display = 'flex'; div.style.justifyContent = 'space-between';
+                div.style.borderBottom = '1px solid #eee'; div.style.padding = '8px 0';
+                div.innerHTML = `<span>${t.text} <small style='color:#888'>${getStar(t.p)}</small></span> <span onclick="removeTask(${t.id})" style="color:#c00; font-weight:bold; cursor:pointer;">×</span>`;
+                const box = document.querySelector(`#box-q${t.q} .task-container`);
+                if(box) box.appendChild(div);
+
+                // 3. LIST VIEW (Geen Q4)
+                if(t.q !== 4) {
+                    actionCount++;
+                    const li = document.createElement('li');
+                    li.className = 'task-card';
+                    li.style.borderLeft = `5px solid ${getColor(t.q)}`;
+                    li.innerHTML = `
+                        <div style="flex-grow:1"><span class="tag" style="background:${getColor(t.q)}">${t.q===1?"DOEN":t.q===2?"PLAN":"DEL"}</span> <strong>${t.text}</strong></div>
+                        <div style="min-width: 50px; text-align:right;"><small style="color:#666; display:block;">${getStar(t.p)}</small><span onclick="removeTask(${t.id})" style="color:#c00; font-size:1.2em; font-weight:bold; cursor:pointer;">×</span></div>
+                    `;
+                    listEl.appendChild(li);
+                }
+            });
+
+            if (ideaEl && ideaEl.children.length === 0) ideaEl.innerHTML = '<div style="font-style:italic; opacity:0.6;">Geen ideeën...</div>';
+            if (actionCount === 0) listEl.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">Nog geen taken vandaag.</div>';
+        }
+    </script>
