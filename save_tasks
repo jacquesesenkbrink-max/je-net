@@ -1,0 +1,17 @@
+<?php
+// Ontvang de ruwe data van de HTML pagina
+$json = file_get_contents('php://input');
+
+// Check of er wel iets in zit
+if (!empty($json)) {
+    // Schrijf de data naar tasks.json
+    if (file_put_contents('tasks.json', $json)) {
+        echo json_encode(["status" => "success"]);
+    } else {
+        http_response_code(500);
+        echo json_encode(["status" => "error", "message" => "Kan bestand niet schrijven. Check permissies."]);
+    }
+} else {
+    echo json_encode(["status" => "empty"]);
+}
+?>
