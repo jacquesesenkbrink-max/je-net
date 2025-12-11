@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Mijn Focus Planner V2</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <style>
+        :root {
+            --q1-bg: #fff5f5; --q1-border: #cc0000;
+            --q2-bg: #f0fff0; --q2-border: #009900;
+            --q3-bg: #fffff0; --q3-border: #e6b800;
+            --q4-bg: #f9f9f9; --q4-border: #999999;
+            --bg-color: #f4f7f6;
+            --accent-color: #2c3e50;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 15px;
+            color: #333;
+            -webkit-tap-highlight-color: transparent;
+            /* Voorkomt pull-to-refresh wat irritant is bij slepen */
+            overscroll-behavior-y: contain; 
+        }
+
+        h1 { text-align: center; font-size: 1.5rem; margin-top: 5px; color: var(--accent-color); margin-bottom: 20px;}
+
+        /* --- STIJLEN VOOR SLEPEN --- */
+        .sortable-ghost { opacity: 0.4; background: #c8ebfb; }
+        .sortable-drag { cursor: grabbing; }
+        .draggable-item { cursor: grab; }
+
+        /* --- QUOTE SECTIE --- */
+        #daily-quote-container {
+            background-color: #eef2f5;
+            border-left: 5px solid #007bff;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-style: italic;
+            color: #555;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+        #quote-text { font-weight: 500; }
+        #quote-author { display: block; margin-top: 5px; font-size: 0.8em; color: #888; text-align: right; font-style: normal;}
+
+        /* --- INPUT SECTIE --- */
+        .input-section {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"], select, button#addBtn {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        button#addBtn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button#addBtn:active { background-color: #0056b3; }
+
+        /* --- HOOFD LAYOUT --- */
+        .main-container {
+            display: flex;
+            flex-direction: column-reverse; 
+            gap: 30px;
+        }
+
+        /* --- DE LIJST --- */
+        .list-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-top: 6px solid var(--accent-color);
+        }
+
+        .task-card {
+            background: white;
+            border: 1px solid #eee;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            touch-action: pan-y; /* Belangrijk voor scrollen vs slepen */
+        }
+
+        .tag {
+            font-size: 0.7em; padding: 3px 6px; border-radius: 4px; 
+            color: white; font-weight: bold; margin-right: 8px; 
+            text-transform: uppercase; letter-spacing: 0.5px;
+            vertical-align: middle;
+        }
+
+        /* --- IDEEËN LIJST STIJLEN --- */
+        .idea-item {
+            background: #fffbe6;
+            border: 1px solid #faeab6;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* --- DE MATRIX --- */
+        .matrix-wrapper {
+            display: grid;
+            gap: 15px;
+            grid-template-columns: 1fr; 
+        }
+
+        .label-top, .label-side { display: none; } 
+
+        .quadrant {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 6px solid #ccc; 
+            min-height: 120px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* Zorgt dat de container de volledige hoogte pakt voor makkelijk droppen */
+        .task-container { min-height: 80px; }
+
+        .q1 { border-color: var(--q1-border); background: var(--q1-bg); }
+        .q2 { border-color: var(--q2-border); background: var(--q2-bg); }
+        .q3 { border-color: var(--q3-border); background: var(--q3-bg); }
+        .q4 { border-color: var(--q4-border); background: var(--q4-bg); opacity: 0.8; }
+
+        .q-title { font-weight: 800; display: flex; justify-content: space-between; margin-bottom: 10px; color: #444; }
+        .q-sub { font-weight: normal; font-size: 0.8em; opacity: 0.7; }
+        
+        .matrix-task-item {
+            background: rgba(255,255,255,0.7);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 8px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            cursor: grab;
+        }
+
+        /* --- DESKTOP STYLES --- */
+        @media (min-width: 900px) {
+            .input-section { flex-direction: row; }
+            .main-container { flex-direction: row; align-items: flex-start; }
+            
+            .matrix-wrapper {
+                flex: 2;
+                grid-template-columns: 40px 1fr 1fr;
+                grid-template-rows: 40px 1fr 1fr;
+                gap: 20px;
+            }
+
+            .list-wrapper { flex: 1; position: sticky; top: 20px; }
+            
+            .label-top { display: block; text-align: center; font-weight: bold; text-transform: uppercase; color: #777; font-size: 0.8em;}
+            .label-side { display: block; writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; font-weight: bold; text-transform: uppercase; color: #777; font-size: 0.8em; justify-self: center;}
+            
+            .quadrant { border-left: none; border-top: 6px solid; min-height: 250px; }
+            .task-container { min-height: 200px; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Mijn Focus Vandaag</h1>
+    
+    <div class="input-section">
+        <input type="text" id="taskInput" placeholder="Nieuwe taak..." onkeypress="handleEnter(event)">
+        <select id="quadrantInput">
+            <option value="1">Q1: Urgent & Belangrijk (DOEN)</option>
+            <option value="2">Q2: Niet Urgent & Belangrijk (PLANNEN)</option>
+            <option value="3">Q3: Urgent & Niet Belangrijk (DELEGEREN)</option>
+            <option value="4">Q4: Niet Urgent & Niet Belangrijk (WEG)</option>
+        </select>
+        <select id="priorityInput">
+            <option value="5">🔥 Prio: Hoogst</option>
+            <option value="4">Prio: Hoog</option>
+            <option value="3" selected>Prio: Normaal</option>
+            <option value="2">Prio: Laag</option>
+        </select>
+        <button id="addBtn" onclick="addTask()">Toevoegen</button>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="list-wrapper">
+            
+            <div id="daily-quote-container">
+                <span id="quote-text">Laden...</span>
+                <span id="quote-author"></span>
+            </div>
+
+            <h2 style="margin-top:0; font-size: 1.2rem;">🚀 Actie Lijst</h2>
+            <div id="smartList"><ol style="padding-left:0; list-style:none; min-height: 50px;" id="action-list-ol"></ol></div>
+            
+            <button onclick="clearAll()" style="width:100%; padding:15px; margin-top:25px; background:#f1f1f1; border:none; border-radius:8px; color:#555; cursor:pointer;">
+                ♻️ Nieuwe dag starten (Lijst wissen)
+            </button>
+
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee;">
+                <h3 style="margin-top:0; font-size: 1.1rem; color: var(--accent-color);">💡 Ideeën & Notities</h3>
+                <div style="display:flex; gap:5px; margin-bottom:10px;">
+                    <input type="text" id="ideaInput" placeholder="Nieuw idee..." onkeypress="handleIdeaEnter(event)">
+                    <button onclick="addIdea()" style="width:auto; padding:0 15px; background:#f0ad4e; color:white; border:none; border-radius:6px; font-weight:bold;">+</button>
+                </div>
+                <div id="ideaContainer" style="min-height: 50px;">
+                    </div>
+            </div>
+        </div>
+
+        <div class="matrix-wrapper">
+            <div></div> <div class="label-top">Urgent</div> <div class="label-top">Niet Urgent</div>
+            <div class="label-side">Belangrijk</div>
+            
+            <div class="quadrant q1" id="box-q1">
+                <div class="q-title">DOEN <span class="q-sub">Nu / Crisis</span></div>
+                <div class="task-container" data-q="1"></div>
+            </div>
+
+            <div class="quadrant q2" id="box-q2">
+                <div class="q-title">PLANNEN <span class="q-sub">Strategie</span></div>
+                <div class="task-container" data-q="2"></div>
+            </div>
+
+            <div class="label-side">Niet Belangrijk</div>
+
+            <div class="quadrant q3" id="box-q3">
+                <div class="q-title">DELEGEREN <span class="q-sub">Ruis</span></div>
+                <div class="task-container" data-q="3"></div>
+            </div>
+
+            <div class="quadrant q4" id="box-q4">
+                <div class="q-title">ELIMINEREN <span class="q-sub">Weg</span></div>
+                <div class="task-container" data-q="4"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- QUOTE LOGICA ---
+        const quotes = [
+            { text: "Het geheim van vooruitkomen is beginnen.", author: "Mark Twain" },
+            { text: "Wat belangrijk is, is zelden urgent en wat urgent is, is zelden belangrijk.", author: "Dwight Eisenhower" },
+            { text: "Focus op productief zijn, niet op druk zijn.", author: "Tim Ferriss" },
+            { text: "Je hoeft niet de hele trap te zien om de eerste stap te zetten.", author: "Martin Luther King Jr." },
+            { text: "Discipline is kiezen tussen wat je nu wilt en wat je het liefste wilt.", author: "Abraham Lincoln" },
+            { text: "Doe eerst wat nodig is, dan wat mogelijk is, en plotseling doe je het onmogelijke.", author: "Franciscus van Assisi" },
+            { text: "Stel niet uit tot morgen wat je vandaag kunt doen.", author: "Benjamin Franklin" },
+            { text: "Er is niets zo nutteloos als het heel efficiënt uitvoeren van iets dat helemaal niet gedaan zou moeten worden.", author: "Peter Drucker" },
+            { text: "Actie is de fundamentele sleutel tot elk succes.", author: "Pablo Picasso" },
+            { text: "Een doel zonder plan is slechts een wens.", author: "Antoine de Saint-Exupéry" }
+        ];
+
+        function initQuote() {
+            const today = new Date().toDateString(); 
+            const savedDate = localStorage.getItem('quoteDate');
+            let savedQuoteIndex = localStorage.getItem('dailyQuoteIndex');
+
+            if (savedDate !== today || savedQuoteIndex === null) {
+                savedQuoteIndex = Math.floor(Math.random() * quotes.length);
+                localStorage.setItem('quoteDate', today);
+                localStorage.setItem('dailyQuoteIndex', savedQuoteIndex);
+            }
+
+            const q = quotes[savedQuoteIndex];
+            document.getElementById('quote-text').innerText = `"${q.text}"`;
+            document.getElementById('quote-author').innerText = `- ${q.author}`;
+        }
+
+        // --- DATA BEHEER ---
+        let tasks = JSON.parse(localStorage.getItem('eisenhowerTasksMobile')) || [];
+        let ideas = JSON.parse(localStorage.getItem('eisenhowerIdeas')) || [];
+
+        function saveTasks() {
+            localStorage.setItem('eisenhowerTasksMobile', JSON.stringify(tasks));
+        }
+
+        function saveIdeas() {
+            localStorage.setItem('eisenhowerIdeas', JSON.stringify(ideas));
+        }
+
+        function handleEnter(e) { if (e.key === 'Enter') addTask(); }
+        function handleIdeaEnter(e) { if (e.key === 'Enter') addIdea(); }
+
+        function addTask() {
+            const text = document.getElementById('taskInput').value;
+            const q = parseInt(document.getElementById('quadrantInput').value);
+            const p = parseInt(document.getElementById('priorityInput').value);
+
+            if (!text.trim()) return;
+
+            // Nieuwe taak toevoegen aan het einde van de array
+            tasks.push({ id: Date.now(), text, q, p });
+            document.getElementById('taskInput').value = '';
+            
+            saveTasks();
+            render(); // Volledige re-render om nieuwe items te tonen en sortables te binden
+        }
+
+        function addIdea() {
+            const text = document.getElementById('ideaInput').value;
+            if (!text.trim()) return;
+            ideas.push({ id: Date.now(), text });
+            document.getElementById('ideaInput').value = '';
+            saveIdeas();
+            renderIdeas();
+        }
+
+        function removeTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+            render();
+        }
+
+        function removeIdea(id) {
+            ideas = ideas.filter(i => i.id !== id);
+            saveIdeas();
+            renderIdeas();
+        }
+
+        function clearAll() {
+            if(confirm("Weet je zeker dat je alles wilt wissen voor een nieuwe dag?")) {
+                tasks = [];
+                localStorage.removeItem('eisenhowerTasksMobile'); 
+                // Ideeën bewaren we meestal wel, tenzij je die ook weg wilt? Voor nu: bewaren.
+                render();
+            }
+        }
+
+        function getStar(p) { return p === 5 ? "🔥" : "★".repeat(p); }
+        function getColor(q) { 
+            if(q==1) return '#cc0000'; if(q==2) return '#009900'; 
+            if(q==3) return '#e6b800'; return '#999'; 
+        }
+
+        // --- RENDERING & SORTING LOGICA ---
+
+        // We initialiseren Sortable instanties eenmalig of her-binden bij render
+        // Omdat render() de DOM overschrijft, moeten we de Sortables opnieuw instellen of slim updaten.
+        // Voor eenvoud: we renderen HTML en starten daarna Sortable.
+
+        function render() {
+            // 1. Matrix Containers legen
+            document.querySelectorAll('.task-container').forEach(el => el.innerHTML = '');
+            // 2. Actielijst legen
+            const listEl = document.getElementById('action-list-ol');
+            listEl.innerHTML = '';
+
+            // We sorteren NIET meer automatisch op prioriteit. De volgorde in de array 'tasks' is leidend.
+            
+            tasks.forEach(t => {
+                // --- MATRIX RENDERING ---
+                const div = document.createElement('div');
+                div.className = 'matrix-task-item draggable-item';
+                div.setAttribute('data-id', t.id);
+                div.innerHTML = `<span>${t.text} <small style='color:#888'>${getStar(t.p)}</small></span> <span onclick="removeTask(${t.id})" style="color:#c00; font-weight:bold; cursor:pointer; padding-left:10px;">×</span>`;
+                
+                // Voeg toe aan juiste kwadrant
+                const container = document.querySelector(`.task-container[data-q="${t.q}"]`);
+                if(container) container.appendChild(div);
+
+                // --- ACTIELIJST RENDERING (Alleen Q1, Q2, Q3) ---
+                if(t.q !== 4) {
+                    const li = document.createElement('li');
+                    li.className = 'task-card draggable-item';
+                    li.setAttribute('data-id', t.id);
+                    li.style.borderLeft = `5px solid ${getColor(t.q)}`;
+                    
+                    const qLabel = t.q === 1 ? "DOEN" : t.q === 2 ? "PLAN" : "DEL";
+                    const bg = getColor(t.q);
+
+                    li.innerHTML = `
+                        <div style="flex-grow:1; pointer-events:none;">
+                            <span class="tag" style="background:${bg}">${qLabel}</span>
+                            <strong>${t.text}</strong>
+                        </div>
+                        <div style="min-width: 50px; text-align:right;">
+                            <small style="color:#666; display:block;">${getStar(t.p)}</small>
+                            <span onclick="removeTask(${t.id})" style="color:#c00; font-size:1.2em; font-weight:bold; cursor:pointer;">×</span>
+                        </div>
+                    `;
+                    listEl.appendChild(li);
+                }
+            });
+
+            if (tasks.filter(t => t.q !== 4).length === 0) {
+                listEl.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">Nog geen taken vandaag.</div>';
+            }
+
+            // Start Sortables
+            initMatrixSortables();
+            initListSortable();
+        }
+
+        function renderIdeas() {
+            const container = document.getElementById('ideaContainer');
+            container.innerHTML = '';
+            
+            ideas.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'idea-item draggable-item';
+                div.setAttribute('data-id', item.id);
+                div.innerHTML = `
+                    <span style="flex-grow:1">${item.text}</span>
+                    <span onclick="removeIdea(${item.id})" style="color:#999; cursor:pointer; font-weight:bold; padding:5px;">×</span>
+                `;
+                container.appendChild(div);
+            });
+
+            initIdeaSortable();
+        }
+
+        // --- SORTABLE JS CONFIGURATIE ---
+
+        function initMatrixSortables() {
+            // Selecteer alle 4 kwadranten
+            const containers = document.querySelectorAll('.task-container');
+            containers.forEach(container => {
+                new Sortable(container, {
+                    group: 'matrix', // Hiermee kan je tussen Q1, Q2, etc slepen
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    delay: 100, // Voorkomt per ongeluk slepen bij scrollen op mobiel
+                    delayOnTouchOnly: true,
+                    onEnd: function (evt) {
+                        // Wanneer een item gedropt is:
+                        updateMatrixOrder();
+                    }
+                });
+            });
+        }
+
+        function updateMatrixOrder() {
+            // We scannen alle 4 de boxen om de nieuwe staat van 'tasks' te bouwen
+            let newTasksArray = [];
+
+            // Helper functie om taken uit DOM te lezen
+            const scanBox = (qNum) => {
+                const box = document.querySelector(`.task-container[data-q="${qNum}"]`);
+                const items = box.querySelectorAll('.matrix-task-item');
+                items.forEach(item => {
+                    const id = parseInt(item.getAttribute('data-id'));
+                    // Vind de originele taak data
+                    const taskData = tasks.find(t => t.id === id);
+                    if (taskData) {
+                        // Update Q waarde (want misschien gesleept van Q1 naar Q2)
+                        taskData.q = qNum; 
+                        newTasksArray.push(taskData);
+                    }
+                });
+            };
+
+            scanBox(1);
+            scanBox(2);
+            scanBox(3);
+            scanBox(4);
+
+            // Update de globale variabele en save
+            tasks = newTasksArray;
+            saveTasks();
+            
+            // We moeten ook de actielijst updaten zodat de volgorde daar klopt met de matrix
+            // Maar we willen niet de hele matrix opnieuw renderen want dan stopt de animatie.
+            // Echter, een re-render van de lijst is nodig om de volgorde daar te updaten.
+            // Omdat Actielijst een aparte DOM is, renderen we die handmatig:
+            refreshActionListOnly(); 
+        }
+
+        function refreshActionListOnly() {
+             // Simpele hack: we roepen render aan, maar omdat render() de matrix ook doet,
+             // en dat kan glitchy zijn direct na een drop, doen we hier een volledige render.
+             // In productie apps zou je React/Vue gebruiken, hier is brute force render ok.
+             render(); 
+        }
+
+        function initListSortable() {
+            const listEl = document.getElementById('action-list-ol');
+            new Sortable(listEl, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                delay: 100,
+                delayOnTouchOnly: true,
+                onEnd: function (evt) {
+                    // Als er in de lijst gesleept wordt:
+                    const newIds = Array.from(listEl.querySelectorAll('.task-card')).map(el => parseInt(el.getAttribute('data-id')));
+                    
+                    // We moeten de 'tasks' array herschikken op basis van deze nieuwe ID volgorde.
+                    // Let op: Q4 items zitten niet in deze lijst, die moeten we behouden.
+                    
+                    const q4Items = tasks.filter(t => t.q === 4);
+                    const sortedNonQ4 = [];
+                    
+                    newIds.forEach(id => {
+                        const t = tasks.find(x => x.id === id);
+                        if(t) sortedNonQ4.push(t);
+                    });
+
+                    // Nieuwe tasks = gesorteerde lijst + oude Q4 items
+                    tasks = [...sortedNonQ4, ...q4Items];
+                    saveTasks();
+                    
+                    // Nu moet de matrix ook updaten (want volgorde in lijst bepaalt ook volgorde in matrix box)
+                    render();
+                }
+            });
+        }
+
+        function initIdeaSortable() {
+            const container = document.getElementById('ideaContainer');
+            new Sortable(container, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                delay: 100,
+                delayOnTouchOnly: true,
+                onEnd: function (evt) {
+                    const newIds = Array.from(container.querySelectorAll('.idea-item')).map(el => parseInt(el.getAttribute('data-id')));
+                    
+                    // Reorder ideas array
+                    const newIdeas = [];
+                    newIds.forEach(id => {
+                        const item = ideas.find(i => i.id === id);
+                        if(item) newIdeas.push(item);
+                    });
+                    
+                    ideas = newIdeas;
+                    saveIdeas();
+                }
+            });
+        }
+
+        // Starten
+        initQuote();
+        render();
+        renderIdeas();
+
+    </script>
+</body>
+</html>

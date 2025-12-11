@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dagelijkse Inspiratie - Compleet</title>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --accent: #e6b89c;
+            --card-bg: rgba(255, 255, 255, 0.98);
+            --text: #333333;
+            --shadow: 0 15px 50px rgba(0,0,0,0.3);
+            --font-head: 'Georgia', serif;
+            --overlay-color: rgba(74, 111, 165, 0.3); 
+        }
+
+        body {
+            font-family: var(--font-head);
+            /* HD Achtergrond */
+            background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=100');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.5s ease;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--overlay-color);
+            z-index: -1;
+            transition: background-color 0.8s ease;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2rem;
+            margin: 0 0 15px 0;
+            transition: color 0.5s ease;
+        }
+
+        /* Thema Tabs */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            cursor: pointer;
+            border-radius: 30px;
+            font-family: sans-serif;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            background-color: rgba(74, 111, 165, 0.1);
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: #fff;
+        }
+
+        /* Nieuwe styling voor de Datum Knop */
+        .jump-today-btn {
+            background-color: transparent;
+            border: 1px solid #999;
+            color: #666;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-family: sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .jump-today-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-1px);
+            background-color: rgba(255,255,255,1);
+        }
+
+        /* Navigatie balk */
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px 15px;
+            transition: transform 0.2s;
+        }
+
+        .nav-btn:hover { transform: scale(1.2); }
+
+        .day-indicator {
+            font-family: sans-serif;
+            font-weight: bold;
+            color: var(--text);
+            font-size: 1.1rem;
+        }
+
+        /* De ene centrale kaart */
+        .card-container {
+            width: 100%;
+            max-width: 600px;
+            perspective: 1000px;
+            margin-bottom: 80px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            border-top: 8px solid var(--accent);
+            position: relative;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .day-badge-big {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            font-size: 0.9rem;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-family: sans-serif;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .quote {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--text);
+            margin: 20px 0;
+            font-style: italic;
+            line-height: 1.5;
+        }
+
+        .ref {
+            display: block;
+            font-size: 1rem;
+            color: var(--primary);
+            margin-bottom: 30px;
+            font-family: sans-serif;
+            font-weight: bold;
+        }
+
+        .divider {
+            height: 1px;
+            background: #ddd;
+            width: 50%;
+            margin: 0 auto 30px auto;
+        }
+
+        .task-box {
+            background-color: rgba(0,0,0,0.04);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--accent);
+            text-align: left;
+        }
+
+        .task-title {
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: block;
+            color: var(--primary);
+        }
+
+        /* Achtergrond Wissel Knop */
+        .bg-toggle-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #ffffff;
+            color: #333;
+            border: 2px solid var(--primary);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 100;
+            transition: all 0.3s ease;
+            font-family: sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .bg-toggle-btn:hover {
+            transform: scale(1.05);
+            background: var(--primary);
+            color: white;
+            border-color: #fff;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.5rem; }
+            .card { padding: 25px; }
+            .quote { font-size: 1.2rem; }
+            .bg-toggle-btn { bottom: 20px; right: 20px; padding: 8px 15px; font-size: 0.8rem;}
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 id="pageTitle">Bijbelse Inspiratie</h1>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTheme('value')" id="btn-value">Je bent van Waarde</button>
+            <button class="tab-btn" onclick="switchTheme('imperfection')" id="btn-imperfection">Genade voor Imperfectie</button>
+        </div>
+        
+        <button class="jump-today-btn" onclick="goToToday()">
+            📅 Vandaag
+        </button>
+    </header>
+
+    <div class="nav-controls">
+        <button class="nav-btn" onclick="changeDay(-1)">&#10094;</button>
+        <div class="day-indicator" id="dayIndicator">Dag 1 / 30</div>
+        <button class="nav-btn" onclick="changeDay(1)">&#10095;</button>
+    </div>
+
+    <div class="card-container" id="mainCardContainer">
+        </div>
+
+    <button class="bg-toggle-btn" onclick="changeBackground()">
+        🖼️ Nieuw Beeld
+    </button>
+
+    <script>
+        // --- DATA SETS ---
+        const dataValue = [
+            { day: 1, quote: "Ik loof U, omdat ik ontzagwekkend wonderlijk gemaakt ben.", ref: "Psalm 139:14", task: "Kijk 1 minuut in de spiegel, recht in je eigen ogen, en zeg hardop: 'Ik ben een wonder'." },
+            { day: 2, quote: "Want wij zijn Zijn maaksel, geschapen in Christus Jezus.", ref: "Efeziërs 2:10", task: "Schrijf 'Meesterwerk' op een post-it en plak het op je computerscherm of koelkast." },
+            { day: 3, quote: "Nog voordat Ik je in de moederschoot vormde, kende Ik je.", ref: "Jeremia 1:5", task: "Bedenk dat je geen toevalstreffer bent. Schrijf op hoe dit je kijk op je verleden verandert." },
+            { day: 4, quote: "Zie, Ik heb u in beide handpalmen gegraveerd.", ref: "Jesaja 49:16", task: "Bekijk de lijnen in je eigen handpalm en besef: zo onuitwisbaar sta ik bij God bekend." },
+            { day: 5, quote: "U bent kostbaar in Mijn ogen, hooggeacht, en Ik heb u lief.", ref: "Jesaja 43:4", task: "Vraag jezelf af: 'Als ik zo kostbaar ben, hoe mag ik mijzelf dan vandaag behandelen?' Doe iets liefs voor jezelf." },
+            { day: 6, quote: "Zelfs de haren op uw hoofd zijn alle geteld.", ref: "Lukas 12:7", task: "Als je je haar kamt of doucht, dank God voor Zijn extreme aandacht voor de kleinste details van jouw leven." },
+            { day: 7, quote: "Bedenk toch hoe groot de liefde is die de Vader ons heeft gegeven: wij worden kinderen van God genoemd.", ref: "1 Johannes 3:1", task: "Luister naar een lied dat gaat over God als Vader (bijv. 'Good Good Father') en zing het mee." },
+            { day: 8, quote: "U bent een uitverkoren geslacht, een koninkrijk van priesters.", ref: "1 Petrus 2:9", task: "Draag vandaag je mooiste kledingstuk of accessoire als symbool van je koninklijke status." },
+            { day: 9, quote: "De HEERE, uw God, is in uw midden... Hij zal Zich over u verheugen met blijdschap.", ref: "Sefanja 3:17", task: "Glimlach vandaag bewust naar iemand, wetende dat God ook naar jou glimlacht." },
+            { day: 10, quote: "Want U hebt mijn nieren geschapen, mij in de schoot van mijn moeder geweven.", ref: "Psalm 139:13", task: "Kijk naar een ingewikkeld geweven stof of breiwerk. Zo complex en zorgvuldig zit jij in elkaar." },
+            { day: 11, quote: "Jullie zijn het lichaam van Christus en ieder van jullie is een deel daarvan.", ref: "1 Korintiërs 12:27", task: "Bedenk één talent dat jij hebt. Dank God dat dit talent nodig is in het grote geheel." },
+            { day: 12, quote: "Er is geen veroordeling voor wie in Christus Jezus zijn.", ref: "Romeinen 8:1", task: "Als je vandaag een fout maakt, zeg dan direct: 'Ik ben vergeven, ik leer hiervan' in plaats van jezelf te straffen." },
+            { day: 13, quote: "Niet gij hebt Mij, maar Ik heb u uitgekozen.", ref: "Johannes 15:16", task: "Schrijf op een briefje: 'Ik ben gewild' en stop het in je portemonnee." },
+            { day: 14, quote: "Ik weet welke gedachten Ik over u koester... gedachten van vrede en niet van onheil.", ref: "Jeremia 29:11", task: "Schrijf één zorg op die je hebt over de toekomst, en geef die symbolisch aan God door het papier weg te gooien." },
+            { day: 15, quote: "De mens kijkt naar het uiterlijk, maar de HEER kijkt naar het hart.", ref: "1 Samuël 16:7", task: "Geef vandaag iemand een compliment over zijn/haar karakter, niet over het uiterlijk." },
+            { day: 16, quote: "Wees sterk en moedig... want de HEERE, uw God, is met u.", ref: "Jozua 1:9", task: "Doe vandaag één ding dat je eigenlijk een beetje spannend vindt." },
+            { day: 17, quote: "Want U hebt mij bijna goddelijk gemaakt, en mij met glorie en luister gekroond.", ref: "Psalm 8:6", task: "Loop vandaag rechtop, schouders naar achteren. Je draagt een onzichtbare kroon." },
+            { day: 18, quote: "Hij heelt wie gebroken zijn en verzorgt hun diepe wonden.", ref: "Psalm 147:3", task: "Identificeer een 'oude wond' of pijn en bid kort: 'Heer, verzorg dit plekje'." },
+            { day: 19, quote: "Alles wat God geschapen heeft is goed.", ref: "1 Timotheüs 4:4", task: "Zeg hardop tegen jezelf: 'Ik ben goed geschapen, ik mag er zijn'." },
+            { day: 20, quote: "Hij die in u een goed werk begonnen is, zal dat ook voltooien.", ref: "Filippenzen 1:6", task: "Wees geduldig met jezelf vandaag. Je bent nog 'under construction' en dat is oké." },
+            { day: 21, quote: "U bent het zout van de aarde... U bent het licht van de wereld.", ref: "Mattheüs 5:13-14", task: "Stuur een bemoedigend appje naar iemand die het moeilijk heeft. Wees even dat licht." },
+            { day: 22, quote: "Wie Mijn Woord hoort en daarin gelooft... is overgegaan uit de dood in het leven.", ref: "Johannes 5:24", task: "Adem diep in en uit. Besef bij elke ademteug dat je écht LEVEN hebt ontvangen." },
+            { day: 23, quote: "Zoals een vader zich ontfermt over zijn kinderen, zo ontfermt de HEERE Zich over wie Hem vrezen.", ref: "Psalm 103:13", task: "Bekijk een foto van jezelf als kind. Kijk met compassie naar dat kind. Zo kijkt God naar jou." },
+            { day: 24, quote: "Ik zal u beslist niet loslaten en Ik zal u beslist niet verlaten.", ref: "Hebreeën 13:5", task: "Houd je eigen hand stevig vast. Voel de grip. Zo houdt God jou vast, maar dan nog sterker." },
+            { day: 25, quote: "In Zijn liefde heeft Hij ons voorbestemd om Zijn kinderen te worden.", ref: "Efeziërs 1:5", task: "Noem drie privileges op die kinderen hebben (bv. bescherming, eten, spelen). Dank God dat jij die geestelijk ook hebt." },
+            { day: 26, quote: "Of weet u niet dat uw lichaam een tempel is van de Heilige Geest?", ref: "1 Korintiërs 6:19", task: "Eet of drink vandaag iets gezonds en zie het als onderhoud van je tempel." },
+            { day: 27, quote: "Ik ben de goede Herder; de goede herder geeft zijn leven voor de schapen.", ref: "Johannes 10:11", task: "Je bent zóveel waard dat Iemand zijn leven voor je gaf. Laat dat 1 minuut in stilte op je inwerken." },
+            { day: 28, quote: "Met eeuwige goedertierenheid zal Ik Mij over u ontfermen.", ref: "Jesaja 54:8", task: "Teken het symbool voor oneindig (∞) op je pols als herinnering aan Zijn eeuwige trouw." },
+            { day: 29, quote: "Kom naar Mij toe, allen die vermoeid en belast zijn, en Ik zal u rust geven.", ref: "Mattheüs 11:28", task: "Neem 5 minuten pauze zonder telefoon, zonder prikkels. Gewoon zitten en rust ontvangen." },
+            { day: 30, quote: "En zie, Ik ben met u al de dagen, tot de voleinding van de wereld.", ref: "Mattheüs 28:20", task: "Kijk naar je agenda voor de komende maand. Schrijf boven de maand: 'God is erbij'." }
+        ];
+
+        const dataImperfection = [
+            { day: 1, quote: "Mijn genade is voor u genoeg, want Mijn kracht wordt in zwakheid volbracht.", ref: "2 Korintiërs 12:9", task: "Erken vandaag hardop één zwakte of onzekerheid. Zeg daarna: 'En precies hier mag God werken'." },
+            { day: 2, quote: "Want Hij weet wat voor maaksel wij zijn en blijft bedenken dat wij stof zijn.", ref: "Psalm 103:14", task: "Pak een beetje aarde of zand in je hand. Voel hoe los het is. Het is oké om fragiel te zijn." },
+            { day: 3, quote: "Maar wij hebben deze schat in aarden kruiken, opdat de allesovertreffende kracht van God zou zijn.", ref: "2 Korintiërs 4:7", task: "Kijk naar een mok of vaasje met een barstje of oneffenheid. Zie de schoonheid in het niet-perfecte." },
+            { day: 4, quote: "Niet dat ik het al verkregen heb... maar ik jaag ernaar.", ref: "Filippenzen 3:12", task: "Zeg tegen jezelf als iets mislukt: 'Ik ben onderweg, ik ben er nog niet, en dat geeft niet'." },
+            { day: 5, quote: "Want de rechtvaardige valt zevenmaal, maar staat weer op.", ref: "Spreuken 24:16", task: "Als je vandaag struikelt (letterlijk of figuurlijk), maak er een punt van om bewust weer 'op te staan' en verder te gaan zonder schuldgevoel." },
+            { day: 6, quote: "Wij struikelen immers allen in veel opzichten.", ref: "Jakobus 3:2", task: "Wees mild voor de fout van een ander vandaag. Het herinnert je eraan dat we allemaal struikelen." },
+            { day: 7, quote: "Gezonden hebben geen dokter nodig, maar wie ziek zijn.", ref: "Mattheüs 9:12", task: "Vraag God vandaag niet om kracht om het zélf te doen, maar geef toe dat je Zijn 'Hulp' nodig hebt." },
+            { day: 8, quote: "Want allen hebben gezondigd en missen de heerlijkheid van God.", ref: "Romeinen 3:23", task: "Adem diep in en uit. Besef dat iedereen die je vandaag ziet, ook niet perfect is. Dat schept een band." },
+            { day: 9, quote: "Het dwaze van de wereld heeft God uitverkoren om de wijzen te beschamen.", ref: "1 Korintiërs 1:27", task: "Doe iets op een 'onhandige' of speelse manier, zonder dat het efficiënt hoeft te zijn." },
+            { day: 10, quote: "Al bezwijkt mijn vlees en mijn hart, God is de rots van mijn hart.", ref: "Psalm 73:26", task: "Voel je hartslag aan je pols. Het is kwetsbaar. Dank God dat Hij de Rots is, en niet jij." },
+            { day: 11, quote: "HEERE, U bent onze Vader; wij zijn de klei en U bent onze Pottenbakker.", ref: "Jesaja 64:8", task: "Visualiseer dat je op een draaischijf staat. De Pottenbakker is nog bezig. Je mag dus nog onaf zijn." },
+            { day: 12, quote: "Indien wij onze zonden belijden: Hij is getrouw en rechtvaardig.", ref: "1 Johannes 1:9", task: "Schrijf een fout op papier, verscheur het en gooi het weg. Het is weg." },
+            { day: 13, quote: "Wees niet al te rechtvaardig en wees niet bovenmate wijs.", ref: "Prediker 7:16", task: "Laat de teugels vandaag één keer vieren. Laat de afwas staan of stuur een mailtje later. De wereld vergaat niet." },
+            { day: 14, quote: "Door de genade van God ben ik wat ik ben.", ref: "1 Korintiërs 15:10", task: "Kijk in de spiegel en zeg: 'Ik ben goed genoeg door Zijn genade'." },
+            { day: 15, quote: "Want wij hebben geen Hogepriester die geen medelijden kan hebben met onze zwakheden.", ref: "Hebreeën 4:15", task: "Vertel Jezus over je dag zoals je tegen een vriend praat die alles begrijpt, zonder vrome woorden." },
+            { day: 16, quote: "En evenzo komt ook de Geest onze zwakheden te hulp.", ref: "Romeinen 8:26", task: "Weet je niet wat je moet bidden? Wees 1 minuut stil en laat de Geest voor je 'zuchten'." },
+            { day: 17, quote: "Zijn barmhartigheden zijn nieuw, elke morgen.", ref: "Klaagliederen 3:23", task: "Bekijk de zonsopkomst of het ochtendlicht. Zie het als een fysiek bewijs van een nieuwe kans." },
+            { day: 18, quote: "Verdraag elkaar en vergeef de een de ander.", ref: "Kolossenzen 3:13", task: "Oefen 'verdraagzaamheid' vandaag eerst op jezelf. Wees geduldig met je eigen leerproces." },
+            { day: 19, quote: "Werp al uw zorgen op Hem, want Hij zorgt voor u.", ref: "1 Petrus 5:7", task: "Bal je vuisten met al je zorgen erin, en open dan je handen naar beneden om ze los te laten." },
+            { day: 20, quote: "De offers voor God zijn een gebroken geest.", ref: "Psalm 51:19", task: "Je hoeft je niet stoerder voor te doen dan je bent. Huilen of balen mag ook een gebed zijn." },
+            { day: 21, quote: "Zalig zijn de armen van geest.", ref: "Mattheüs 5:3", task: "Ga even zitten met open, lege handen op je schoot. Erken dat je God nodig hebt." },
+            { day: 22, quote: "Als wij ontrouw zijn, blijft Hij getrouw.", ref: "2 Timotheüs 2:13", task: "Leun letterlijk tegen een muur aan. De muur blijft staan, ook als jij wankelt. Zo is God." },
+            { day: 23, quote: "Ik ben niet gekomen om rechtvaardigen te roepen, maar zondaars.", ref: "Lukas 5:32", task: "Wees blij dat je niet perfect ('rechtvaardig') hoeft te zijn om door Jezus geroepen te worden." },
+            { day: 24, quote: "Vertrouw op de HEERE met heel je hart, en steun op je eigen inzicht niet.", ref: "Spreuken 3:5", task: "Doe 1 minuut je ogen dicht. Je ziet niks, maar je bent veilig. Oefening in vertrouwen." },
+            { day: 25, quote: "Want het willen is wel bij mij aanwezig, maar het goede uitwerken niet.", ref: "Romeinen 7:18", task: "Accepteer vandaag dat je intentie goed was, ook al was het resultaat rommelig." },
+            { day: 26, quote: "Aan Hem nu Die u voor struikelen kan behoeden...", ref: "Judas 1:24", task: "Loop over een smal randje (van de stoep of tapijt). Besef: Hij houdt mij vast als ik wankel." },
+            { day: 27, quote: "Hij zal de geknakte rietstengel niet breken.", ref: "Jesaja 42:3", task: "Zoek in de tuin of het park een geknakt plantje. Zie hoe teer het is. God is oneindig voorzichtig met jou." },
+            { day: 28, quote: "De mens wikt, maar de HEERE beschikt.", ref: "Spreuken 19:21", task: "Streep iets door in je agenda wat niet gelukt is, en zet er een smiley bij. Het is oké." },
+            { day: 29, quote: "Ik ellendig mens, wie zal mij verlossen?", ref: "Romeinen 7:24", task: "Soms mag je gewoon even klagen. Stort je hart uit, en eindig met: 'Dank U God door Jezus Christus' (Rom 7:25)." },
+            { day: 30, quote: "De HEERE zal voor u voltooien wat bij mij hoort.", ref: "Psalm 138:8", task: "Kijk terug op de maand. Je bent nog niet 'af', maar God is nog steeds aan het werk. Rust daarin." }
+        ];
+
+        // --- CONFIGURATIE ---
+        const themes = {
+            value: {
+                data: dataValue,
+                title: "Je bent van Waarde",
+                colors: { primary: "#4a6fa5", accent: "#e6b89c", overlay: "rgba(74, 111, 165, 0.3)" }
+            },
+            imperfection: {
+                data: dataImperfection,
+                title: "Genade voor Imperfectie",
+                colors: { primary: "#a8573c", accent: "#d4af37", overlay: "rgba(168, 87, 60, 0.3)" }
+            }
+        };
+
+        const backgroundImages = [
+            'https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=100',
+            'https://images.unsplash.com/photo-1511497584788-876760111969?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=100',
+            'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=100',
+            'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=100',
+            'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=100',
+            'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=100',
+            'https://images.unsplash.com/photo-1501854140884-074cf27f731d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=100'
+        ];
+        
+        let currentImageIndex = 0;
+        let currentThemeKey = 'value';
+        let currentDayIndex = 0; 
+
+        const root = document.documentElement;
+        const pageTitle = document.getElementById('pageTitle');
+        const container = document.getElementById('mainCardContainer');
+        const dayIndicator = document.getElementById('dayIndicator');
+
+        // Start
+        switchTheme('value');
+
+        function switchTheme(themeKey) {
+            currentThemeKey = themeKey;
+            const theme = themes[themeKey];
+            
+            // Kleuren
+            root.style.setProperty('--primary', theme.colors.primary);
+            root.style.setProperty('--accent', theme.colors.accent);
+            root.style.setProperty('--overlay-color', theme.colors.overlay);
+
+            // Tekst & Knoppen
+            pageTitle.innerText = theme.title;
+            document.getElementById('btn-value').classList.toggle('active', themeKey === 'value');
+            document.getElementById('btn-imperfection').classList.toggle('active', themeKey === 'imperfection');
+
+            renderCurrentCard();
+        }
+
+        function changeDay(delta) {
+            const data = themes[currentThemeKey].data;
+            const newIndex = currentDayIndex + delta;
+
+            if (newIndex >= 0 && newIndex < data.length) {
+                currentDayIndex = newIndex;
+                renderCurrentCard();
+            }
+        }
+
+        function goToToday() {
+            const today = new Date().getDate(); 
+            let targetDay = today;
+            if (targetDay > 30) targetDay = 30; 
+            if (targetDay < 1) targetDay = 1;
+            
+            currentDayIndex = targetDay - 1; 
+            renderCurrentCard();
+        }
+
+        function renderCurrentCard() {
+            const item = themes[currentThemeKey].data[currentDayIndex];
+            
+            dayIndicator.innerText = `Dag ${item.day} / 30`;
+            
+            container.innerHTML = `
+                <div class="card">
+                    <div class="day-badge-big">Dag ${item.day}</div>
+                    <div class="quote">"${item.quote}"</div>
+                    <div class="ref">— ${item.ref}</div>
+                    <div class="divider"></div>
+                    <div class="task-box">
+                        <span class="task-title">De opdracht voor vandaag:</span>
+                        ${item.task}
+                    </div>
+                </div>
+            `;
+        }
+
+        function changeBackground() {
+            currentImageIndex = (currentImageIndex + 1) % backgroundImages.length;
+            document.body.style.backgroundImage = `url('${backgroundImages[currentImageIndex]}')`;
+        }
+    </script>
+</body>
+</html>

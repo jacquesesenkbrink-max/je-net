@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smaakmakers - Het Diner Gesprek</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #d4a373; /* Warm goud/bruin */
+            --primary-dark: #b08050;
+            --secondary-color: #faedcd; /* Crème */
+            --text-dark: #2c2c2c;
+            --text-light: #555;
+            --overlay-dark: rgba(0, 0, 0, 0.65);
+            --card-bg: rgba(255, 255, 255, 0.96);
+            --warning-bg: #fff3cd;
+            --warning-border: #ffc107;
+            --shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body, html {
+            height: 100%;
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-dark);
+            overflow: hidden; /* Voorkom scrollen van de pagina zelf */
+        }
+
+        /* --- ACHTERGROND --- */
+        .background-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1559339352-11d035aa65de?ixlib=rb-4.0.3&auto=format&fit=crop&w=1974&q=80');
+            background-size: cover;
+            background-position: center;
+            filter: blur(5px);
+            z-index: -2;
+            transform: scale(1.1);
+        }
+
+        .dark-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--overlay-dark);
+            z-index: -1;
+        }
+
+        /* --- LAYOUT --- */
+        .app-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 15px;
+        }
+
+        .game-card {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 550px;
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            position: relative;
+            border-top: 6px solid var(--primary-color);
+            border-bottom: 6px solid var(--primary-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            /* Zorgt dat kaart past op kleine schermen */
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* --- TYPOGRAFIE --- */
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            color: var(--text-dark);
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        h2.course-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .instruction-small {
+            font-size: 0.9rem;
+            color: #888;
+            font-style: italic;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            display: inline-block;
+        }
+
+        /* --- HET VRAAGBLOK --- */
+        .question-box {
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+
+        .question-text {
+            font-size: 1.35rem;
+            font-weight: 500;
+            line-height: 1.5;
+            color: var(--text-dark);
+        }
+
+        /* Styling voor Quotes */
+        .quote-part {
+            display: block;
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            color: #777;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+        
+        .question-part {
+            display: block;
+            font-weight: 700;
+            color: #222;
+        }
+
+        /* --- ALERTS --- */
+        .rules-alert {
+            background-color: var(--warning-bg);
+            border-left: 5px solid var(--warning-border);
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            text-align: left;
+            border-radius: 4px;
+            color: #856404;
+        }
+
+        /* --- KNOPPEN --- */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        @media (min-width: 400px) {
+            .controls {
+                flex-direction: row;
+                justify-content: center;
+            }
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Montserrat', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: var(--text-dark);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* --- UTILS & ANIMATIE --- */
+        .hidden { display: none !important; }
+
+        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="background-container"></div>
+    <div class="dark-overlay"></div>
+
+    <div class="app-container">
+        
+        <div id="start-screen" class="game-card fade-in">
+            <h1>Smaakmakers</h1>
+            <p class="subtitle">Het interactieve diner-spel voor goede gesprekken.<br>Leg deze telefoon plat op tafel.</p>
+            <button class="btn btn-primary" onclick="startGame()">Open het Menu</button>
+        </div>
+
+        <div id="game-screen" class="game-card hidden">
+            <div>
+                <h2 id="course-title" class="course-title">Gang 1</h2>
+                <p id="instruction-text" class="instruction-small">Instructie tekst...</p>
+            </div>
+
+            <div id="advies-alarm" class="rules-alert hidden">
+                <strong>⚠️ Advies-Alarm:</strong> <br>
+                Tijdens deze gang mag niemand problemen 'oplossen' of ongevraagd advies geven. We luisteren alleen om te begrijpen.
+            </div>
+
+            <div class="question-box">
+                <p id="current-question" class="question-text">De vraag verschijnt hier...</p>
+            </div>
+
+            <div class="controls">
+                <button id="btn-new-question" class="btn btn-secondary" onclick="nextQuestion()">Nieuwe Vraag</button>
+                <button id="btn-next-course" class="btn btn-primary" onclick="nextCourse()">Volgende Gang</button>
+            </div>
+        </div>
+
+        <div id="end-screen" class="game-card hidden">
+            <h1>Buik vol?</h1>
+            <p class="subtitle">Bedankt voor het goede gesprek. Jullie kunnen de telefoon weer oppakken.</p>
+            <div style="margin: 20px 0; border-top: 1px solid #ddd; padding-top: 20px;">
+                <em style="font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--primary-color);">"De echte dialoog begint waar je eigen gelijk ophoudt."</em>
+            </div>
+            <button class="btn btn-secondary" onclick="restartGame()">Terug naar Start</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DE DATABASE (60+ Vragen) ---
+        const database = {
+            voorgerecht: [
+                "Als je leven verfilmd zou worden, welk genre zou het dan zijn? (Komedie, Drama, Sci-Fi?)",
+                "Wat is het vreemdste dat je ooit gegeten hebt uit beleefdheid?",
+                "Als je één dier zou kunnen zijn voor een dag, welk dier zou je kiezen en waarom?",
+                "Welke app op je telefoon zou je voor geen goud willen missen?",
+                "Wat is je 'guilty pleasure' qua muziek waar je je eigenlijk voor schaamt?",
+                "Als we als gezin een reality-soap hadden, hoe zou die dan heten?",
+                "Stel je wint 10 miljoen, maar je moet het binnen 24 uur uitgeven. Wat koop je?",
+                "Wat is de slechtste aankoop die je het afgelopen jaar hebt gedaan?",
+                "Aan welk huishoudelijk klusje heb je echt een bloedhekel?",
+                "Als je een Olympische medaille zou kunnen winnen in een niet-bestaande sport (bijv. 'snelwandelen naar de koelkast'), wat is jouw sport?",
+                "Welk woord gebruik jij te vaak?",
+                "Dilemma: Altijd moeten zeggen wat je denkt, of nooit meer kunnen praten?",
+                "Dilemma: Zou je liever 100 jaar in de toekomst kijken of 100 jaar in het verleden?",
+                "Wat is het lekkerste dat je deze week geroken hebt?",
+                "Als je een eigen feestdag mocht verzinnen, wat zouden we dan vieren?",
+                "Wie van ons zou het langst overleven op een onbewoond eiland?",
+                "Wat is je favoriete herinnering aan een vakantie van vroeger?",
+                "Als je één superkracht mocht kiezen, maar hij mag NIET nuttig zijn (dus bijv. 'kleur van sokken veranderen'), wat kies je?",
+                "Welk fictief personage (film/boek) lijkt het meest op jou?",
+                "Wat is het stomste advies dat je ooit hebt gekregen?"
+            ],
+
+            hoofdgerecht: [
+                // Quotes & Wijsheid
+                "Quote: 'Het leven is wat je gebeurt terwijl je andere plannen maakt.' (John Lennon) -> Welke onverwachte wending in jouw leven heeft uiteindelijk verrassend goed uitgepakt?",
+                "Quote: 'Ik heb het nog nooit gedaan, dus ik denk dat ik het wel kan.' (Pippi Langkous) -> Op welk vlak zou jij wel wat meer Pippi-mentaliteit kunnen gebruiken?",
+                "Quote: 'We hebben twee levens, en het tweede begint wanneer we ons realiseren dat we er maar één hebben.' -> Heb jij al zo'n moment van besef gehad?",
+                "Quote: 'Logica brengt je van A naar B. Verbeelding brengt je overal.' (Einstein) -> Ben jij meer van de logica of de verbeelding? En waar mis je de andere kant?",
+                "Quote: 'Ik verlies nooit. Ik win of ik leer.' -> Wat is je meest waardevolle 'fout' of les van de afgelopen tijd geweest?",
+                
+                // Generaties & Tijd
+                "Wat deed jij (ouder) toen je mijn leeftijd had, wat ik nu nooit zou durven (of kunnen)?",
+                "Waarover maken mensen van mijn generatie (20-25) zich veel te druk volgens jou?",
+                "Welke vrijheid heb ik nu, waar jij (ouder) vroeger jaloers op zou zijn geweest?",
+                "Op welk moment realiseerde jij je voor het eerst: 'Help, ik ben volwassen'?",
+                
+                // Diepgang & Verbinding
+                "Wanneer heb je je voor het laatst echt eenzaam gevoeld, ook al waren er mensen om je heen?",
+                "Wat is een eigenschap van jezelf waar je soms last van hebt, maar die je ook ver heeft gebracht?",
+                "Als je excuses zou moeten aanbieden aan iemand aan deze tafel voor iets uit het verleden, waarvoor zou dat zijn?",
+                "Op welk moment was je de afgelopen maand het meest trots op jezelf?",
+                "Wat is een overtuiging die je 5 jaar geleden had, maar waar je nu heel anders over denkt?",
+                "Welke 'label' plakken mensen vaak op jou dat eigenlijk helemaal niet klopt?",
+                
+                // Waarden & Dilemma's
+                "Wat is belangrijker: Veel geld verdienen met saai werk, of weinig verdienen met je passie?",
+                "Kies je voor: Een leven vol extreme pieken en diepe dalen, of een leven dat altijd stabiel en rustig is?",
+                "Wat vind je erger: falen in iets wat je graag wilde, of het nooit geprobeerd hebben?",
+                "Is een leugentje om bestwil acceptabel? Waar ligt jouw grens?",
+                
+                // Het Hart
+                "Wat heb je van ons (als gezin) nodig als je niet lekker in je vel zit? (Met rust laten, advies, of knuffel?)",
+                "Welk compliment vind je moeilijk om te ontvangen, maar wil je stiekem wel horen?",
+                "Wanneer voel jij je het meest geliefd door de mensen aan deze tafel?"
+            ],
+
+            nagerecht: [
+                "Doe een rondje: Wat waardeer je het meest aan de persoon rechts van je?",
+                "Noem één ding waar je de komende week écht naar uitkijkt.",
+                "Als geld geen rol speelde, wat zouden we dan als gezin morgen gaan doen?",
+                "Iedereen pakt zijn telefoon: Stuur de laatste foto die je hebt gemaakt in de gezinsapp en vertel er iets over.",
+                "Wat is het belangrijkste inzicht dat je meeneemt uit het gesprek van vanavond?",
+                "Geef jezelf eens een compliment: Wat heb je vandaag goed gedaan?",
+                "Opdracht: We maken een gezins-playlist. Iedereen mag nu 1 nummer toevoegen. Welke kies je?",
+                "Wie aan tafel heeft je vanavond verrast met een antwoord, en waarom?",
+                "Wat hoop je dat er over een jaar veranderd is in je leven?",
+                "Spreek een wens uit voor iemand anders aan deze tafel.",
+                "High five de persoon tegenover je en zeg: 'Goed gewerkt'.",
+                "Bedenk samen één nieuwe regel voor tijdens het eten die het gezelliger maakt.",
+                "Wat is iets kleins waar je vandaag dankbaar voor was?"
+            ]
+        };
+
+        // --- VARIABELEN & ELEMENTEN ---
+        let currentCourse = 0; // 0=Start, 1=Voor, 2=Hoofd, 3=Na
+        let usedQuestions = [];
+
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        
+        const courseTitle = document.getElementById('course-title');
+        const instructionText = document.getElementById('instruction-text');
+        const currentQuestionText = document.getElementById('current-question');
+        const adviesAlarm = document.getElementById('advies-alarm');
+        
+        const btnNewQuestion = document.getElementById('btn-new-question');
+        const btnNextCourse = document.getElementById('btn-next-course');
+        const questionBox = document.querySelector('.question-box');
+
+        // --- FUNCTIES ---
+
+        function startGame() {
+            startScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            gameScreen.classList.add('fade-in');
+            nextCourse();
+        }
+
+        function restartGame() {
+            endScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            startScreen.classList.add('fade-in');
+            
+            // Reset state
+            currentCourse = 0;
+            usedQuestions = [];
+            btnNextCourse.textContent = "Volgende Gang";
+        }
+
+        function nextCourse() {
+            currentCourse++;
+            usedQuestions = []; // Reset vragen voor de nieuwe gang
+
+            // Reset UI elementen
+            btnNewQuestion.classList.remove('hidden');
+            instructionText.classList.remove('hidden');
+            btnNewQuestion.disabled = false;
+
+            // Trigger animatie voor nieuwe gang
+            questionBox.classList.remove('fade-in');
+            void questionBox.offsetWidth; // Force reflow
+            questionBox.classList.add('fade-in');
+
+            switch(currentCourse) {
+                case 1:
+                    courseTitle.textContent = "Gang 1: Het Voorgerecht";
+                    instructionText.textContent = "Luchtig & Verbindend. Iedereen geeft kort antwoord.";
+                    adviesAlarm.classList.add('hidden');
+                    nextQuestion();
+                    break;
+                case 2:
+                    courseTitle.textContent = "Gang 2: Het Hoofdgerecht";
+                    instructionText.textContent = "De diepte in. Neem de tijd om te luisteren.";
+                    adviesAlarm.classList.remove('hidden');
+                    nextQuestion();
+                    break;
+                case 3:
+                    courseTitle.textContent = "Gang 3: Het Nagerecht";
+                    instructionText.textContent = "Positief & Actiegericht.";
+                    adviesAlarm.classList.add('hidden');
+                    btnNextCourse.textContent = "Afrekenen (Afronden)";
+                    nextQuestion();
+                    break;
+                case 4:
+                    // Na gang 3 gaan we naar einde
+                    gameScreen.classList.add('hidden');
+                    endScreen.classList.remove('hidden');
+                    endScreen.classList.add('fade-in');
+                    break;
+            }
+        }
+
+        function nextQuestion() {
+            let questionList;
+
+            if (currentCourse === 1) questionList = database.voorgerecht;
+            else if (currentCourse === 2) questionList = database.hoofdgerecht;
+            else if (currentCourse === 3) questionList = database.nagerecht;
+            else return;
+
+            // Filter vragen die al geweest zijn
+            let available = questionList.filter(q => !usedQuestions.includes(q));
+
+            if (available.length === 0) {
+                currentQuestionText.innerHTML = "<span style='color:#b08050'>De chef meldt: Alle gerechten van deze gang zijn geserveerd!</span>";
+                btnNewQuestion.classList.add('hidden');
+                return;
+            }
+
+            // Kies willekeurige vraag
+            const randomIndex = Math.floor(Math.random() * available.length);
+            const selected = available[randomIndex];
+            usedQuestions.push(selected);
+
+            // Opmaak logica voor Quotes
+            let displayHTML = "";
+            if (selected.includes("Quote:") && selected.includes("->")) {
+                const parts = selected.replace("Quote:", "").split("->");
+                displayHTML = `<span class="quote-part">"${parts[0].trim()}"</span>
+                               <span class="question-part">${parts[1].trim()}</span>`;
+            } else {
+                displayHTML = selected;
+            }
+
+            // Animatie: Fade out tekst -> verander tekst -> Fade in
+            currentQuestionText.style.opacity = 0;
+            currentQuestionText.style.transition = "opacity 0.3s ease";
+            
+            setTimeout(() => {
+                currentQuestionText.innerHTML = displayHTML;
+                currentQuestionText.style.opacity = 1;
+            }, 300);
+        }
+    </script>
+</body>
+</html>
