@@ -193,6 +193,7 @@
         .weather-box i.fa-cloud-rain { color: #74b9ff; }
         .weather-box i.fa-snowflake { color: #dfe6e9; }
         .weather-box i.fa-bolt { color: #fab1a0; }
+        .weather-box i.fa-smog { color: #b2bec3; }
 
         #radar-popup {
             display: none;
@@ -340,11 +341,11 @@
 
                     <div id="radar-popup">
                         <h4 style="margin: 0 0 10px 0; color: #2d3436; font-size: 0.9rem;">🌧️ Buienradar NL</h4>
-				<iframe 
-				    src="https://gadgets.buienradar.nl/gadget/zoommap/?lat=52.09&lng=5.12&overname=2&zoom=6&naam=Utrecht&size=2b&voor=1" 
-    				    scrolling="no" 
-    				    style="width:100%; height:280px; border:none; border-radius:10px;">
-				</iframe>
+                        <iframe 
+                            src="https://gadgets.buienradar.nl/gadget/zoommap/?lat=52.09&lng=5.12&overname=2&zoom=6&naam=Utrecht&size=2b&voor=1" 
+                            scrolling="no" 
+                            style="width:100%; height:280px; border:none; border-radius:10px;">
+                        </iframe>
                         <div style="text-align: right; margin-top: 5px;">
                             <button onclick="toggleRadar()" style="background: #dfe6e9; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">Sluiten</button>
                         </div>
@@ -369,18 +370,56 @@
     </div>
 
     <script>
-        const WACHTWOORD = "Geheim4321"; 
+        // --- VEILIGHEID UPDATE BEGIN ---
         
-        // JOUW APPS - AANGEPAST
+        // Dit is de 'vingerafdruk' (hash) van "Geheim4321".
+        // Als iemand de code leest, zien ze het wachtwoord niet.
+        const STORED_HASH = "5e8862cd736df5244583151859664539665683e843825948740c5f2b38e053a4";
+
+        // Functie om tekst om te zetten naar een veilige hash (SHA-256)
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Check bij het laden of er al een actieve sessie is
+        if(sessionStorage.getItem('dashboard_access') === 'valid') {
+            document.addEventListener("DOMContentLoaded", () => {
+                openDashboard();
+            });
+        }
+
+        // De nieuwe inlog functie (async omdat hashing even tijd kost)
+        async function checkLogin() {
+            const inputVal = document.getElementById('passwordInput').value;
+            const inputHash = await sha256(inputVal);
+
+            if(inputHash === STORED_HASH) {
+                // Sla op in SESSIE (verdwijnt als browser sluit)
+                sessionStorage.setItem('dashboard_access', 'valid');
+                openDashboard();
+            } else {
+                document.getElementById('error-msg').style.display = 'block';
+                document.getElementById('passwordInput').value = '';
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('dashboard_access');
+            location.reload();
+        }
+        // --- VEILIGHEID UPDATE EINDE ---
+
+
+        // JOUW APPS
         const myApps = [
-            // Categorie: Dagelijks (deze blijven hetzelfde)
             { id: 1, cat: 'dagelijks', name: "Boodschappen", icon: "fa-shopping-basket", url: "Boodschappen-thuis.html" },
             { id: 2, cat: 'dagelijks', name: "Agenda Jacques en Anita", icon: "fa-calendar-day", url: "https://calendar.google.com" },
             { id: 9, cat: 'dagelijks', name: "Urenrooster Anita", icon: "fa-user-clock", url: "zorgbalans.html" },
             { id: 3, cat: 'dagelijks', name: "Taken", icon: "fa-check-double", url: "timemanagement v3.html" },
             
-            // Categorie: Meditatie (NIEUW)
-            // LET OP: Vervang de '#' hieronder met de echte links naar de meditatie pagina's
             { id: 10, cat: 'meditatie', name: "Meditatie Jacques", icon: "fa-spa", url: "#" },
             { id: 11, cat: 'meditatie', name: "Meditatie Anita", icon: "fa-leaf", url: "bijbelse-meditatie.html" },
             { id: 12, cat: 'meditatie', name: "Dialoog spel", icon: "fa-comments", url: "dedialoog v1.0.html" },
@@ -398,25 +437,6 @@
             "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80" 
         ];
 
-        // LOGIN LOGICA
-        if(localStorage.getItem('dashboard_access') === 'true') {
-            openDashboard();
-        }
-
-        function checkLogin() {
-            if(document.getElementById('passwordInput').value === WACHTWOORD) {
-                localStorage.setItem('dashboard_access', 'true');
-                openDashboard();
-            } else {
-                document.getElementById('error-msg').style.display = 'block';
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('dashboard_access');
-            location.reload();
-        }
-
         function openDashboard() {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
@@ -426,6 +446,7 @@
             fetchWeather();
             renderApps('dagelijks');
             
+            // Zet achtergrond alleen als we in foto-modus zijn
             if(bgMode === 'photo') {
                 const randomImg = natureImages[Math.floor(Math.random() * natureImages.length)];
                 document.body.style.background = `url('${randomImg}') no-repeat center center fixed`;
@@ -523,9 +544,8 @@
             }
         });
 
-	async function fetchWeather() {
+        async function fetchWeather() {
             try {
-                // We halen het weer op voor Utrecht (centraal)
                 const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=52.09&longitude=5.12&current_weather=true');
                 const data = await response.json();
                 
@@ -535,28 +555,26 @@
                 document.getElementById('weather-text').innerText = `${temp}°C`;
                 const iconElement = document.getElementById('weather-icon');
                 
-                // Reset icon class
                 iconElement.className = 'fas'; 
                 
-                // Uitgebreidere weer-codes (WMO standaarden)
                 if (code === 0) {
-                    iconElement.classList.add('fa-sun'); // Onbewolkt
+                    iconElement.classList.add('fa-sun'); 
                 } else if (code >= 1 && code <= 3) {
-                    iconElement.classList.add('fa-cloud-sun'); // Licht bewolkt
+                    iconElement.classList.add('fa-cloud-sun'); 
                 } else if (code >= 45 && code <= 48) {
-                    iconElement.classList.add('fa-smog'); // Mist
+                    iconElement.classList.add('fa-smog'); 
                 } else if (code >= 51 && code <= 67) {
-                    iconElement.classList.add('fa-cloud-rain'); // Motregen/Regen
+                    iconElement.classList.add('fa-cloud-rain'); 
                 } else if (code >= 71 && code <= 77) {
-                    iconElement.classList.add('fa-snowflake'); // Sneeuw
+                    iconElement.classList.add('fa-snowflake'); 
                 } else if (code >= 80 && code <= 82) {
-                    iconElement.classList.add('fa-cloud-showers-heavy'); // Regenbuien (DIT MISTE JE)
+                    iconElement.classList.add('fa-cloud-showers-heavy'); 
                 } else if (code >= 85 && code <= 86) {
-                    iconElement.classList.add('fa-snowflake'); // Sneeuwbuien
+                    iconElement.classList.add('fa-snowflake'); 
                 } else if (code >= 95) {
-                    iconElement.classList.add('fa-bolt'); // Onweer
+                    iconElement.classList.add('fa-bolt'); 
                 } else {
-                    iconElement.classList.add('fa-cloud'); // Onbekend/Bewolkt
+                    iconElement.classList.add('fa-cloud'); 
                 }
             } catch (e) {
                 console.log("Weer fout:", e);
@@ -566,7 +584,7 @@
         }
 
         function toggleBackground() {
-            const btn = document.querySelector('.footer-controls button'); // Zoek de knop
+            const btn = document.querySelector('.footer-controls button'); 
 
             if(bgMode === 'photo') {
                 document.body.style.background = "linear-gradient(120deg, #a18cd1 0%, #fbc2eb 100%)";
