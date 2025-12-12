@@ -370,15 +370,16 @@
     </div>
 
     <script>
-        // --- VEILIGHEID UPDATE BEGIN ---
+        // --- VEILIGE LOGIN (ONLINE VERSIE) ---
         
-        // Dit is de 'vingerafdruk' (hash) van "Geheim4321".
-        // Als iemand de code leest, zien ze het wachtwoord niet.
-        const STORED_HASH = "5e8862cd736df5244583151859664539665683e843825948740c5f2b38e053a4";
+        // Dit is de 'vingerafdruk' (hash) van "zhkttthn1968".
+        // Als iemand de broncode leest, zien ze het wachtwoord niet.
+        const STORED_HASH = "e441400827255716183615467611593026330925762817349195356976214636";
 
         // Functie om tekst om te zetten naar een veilige hash (SHA-256)
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);
+            // Crypto.subtle werkt alleen op HTTPS of localhost!
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
@@ -391,18 +392,24 @@
             });
         }
 
-        // De nieuwe inlog functie (async omdat hashing even tijd kost)
+        // De inlog functie (async omdat hashing even tijd kost)
         async function checkLogin() {
-            const inputVal = document.getElementById('passwordInput').value;
-            const inputHash = await sha256(inputVal);
+            try {
+                const inputVal = document.getElementById('passwordInput').value;
+                const inputHash = await sha256(inputVal);
 
-            if(inputHash === STORED_HASH) {
-                // Sla op in SESSIE (verdwijnt als browser sluit)
-                sessionStorage.setItem('dashboard_access', 'valid');
-                openDashboard();
-            } else {
-                document.getElementById('error-msg').style.display = 'block';
-                document.getElementById('passwordInput').value = '';
+                if(inputHash === STORED_HASH) {
+                    // Sla op in SESSIE (verdwijnt als browser sluit)
+                    sessionStorage.setItem('dashboard_access', 'valid');
+                    openDashboard();
+                } else {
+                    document.getElementById('error-msg').style.display = 'block';
+                    document.getElementById('passwordInput').value = '';
+                }
+            } catch (error) {
+                // Vangt fouten op als de site niet op HTTPS draait
+                console.error("Login fout (waarschijnlijk geen HTTPS):", error);
+                alert("Let op: Deze veilige login werkt alleen als de site online staat (HTTPS) of via localhost.");
             }
         }
 
@@ -410,7 +417,7 @@
             sessionStorage.removeItem('dashboard_access');
             location.reload();
         }
-        // --- VEILIGHEID UPDATE EINDE ---
+        // --- EINDE VEILIGE LOGIN ---
 
 
         // JOUW APPS
