@@ -26,8 +26,11 @@
             font-family: 'Poppins', sans-serif;
             color: var(--text-dark);
             min-height: 100vh;
+            
+            /* Standaard: Natuurfoto */
             background: url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80') no-repeat center center fixed;
             background-size: cover;
+            
             transition: background 0.5s ease;
             text-shadow: 0 1px 3px rgba(255,255,255,0.8); 
         }
@@ -317,13 +320,7 @@
             <p style="color:#636e72;">Je dashboard is vergrendeld.</p>
             <input type="password" id="passwordInput" placeholder="Wachtwoord" onkeyup="if(event.key === 'Enter') checkLogin()">
             <button class="btn-main" onclick="checkLogin()">Ontgrendelen</button>
-            
-            <div id="error-msg" style="display:none; margin-top:20px; text-align:left; background:#fff0f0; padding:10px; border-radius:10px; border:1px solid red;">
-                <strong style="color:red;">Verkeerde code.</strong><br>
-                <span style="font-size:0.8rem; color:#333;">De computer ziet deze hash:</span><br>
-                <textarea id="hash-output" style="width:100%; height:60px; font-size:0.7rem; margin-top:5px;"></textarea>
-                <small style="color:#636e72; display:block; margin-top:5px;">Kopieer de code hierboven en plak hem bij 'STORED_HASH'.</small>
-            </div>
+            <p id="error-msg" style="color:red; display:none; margin-top:10px; font-size:0.9rem;">Verkeerde code</p>
         </div>
 
         <div id="dashboard">
@@ -375,39 +372,34 @@
     </div>
 
     <script>
-        // --- VEILIGE LOGIN MET HULP ---
+        // --- VEILIGE LOGIN ---
         
-        // DIT IS DE HUIDIGE CODE IN HET BESTAND:
-        const STORED_HASH = "1e95085e94b2287e076717616198941014526017346766465545222013146430";
+        // DE CORRECTE HASH (GEKOPIEERD UIT JOUW DIAGNOSE SCHERM):
+        const STORED_HASH = "c2ed12441a21c8045a0c466ca90b4454ac85cad01a504d35ed8c8c3945dc8924";
 
+        // Check bij het laden of er al een actieve sessie is
         if(sessionStorage.getItem('dashboard_access') === 'valid') {
             document.addEventListener("DOMContentLoaded", () => {
                 openDashboard();
             });
         }
 
+        // Login functie
         function checkLogin() {
-            try {
-                const inputVal = document.getElementById('passwordInput').value;
-                
-                // Bereken hash
-                const inputHash = CryptoJS.SHA256(inputVal).toString();
+            const inputVal = document.getElementById('passwordInput').value;
+            
+            // Hash berekenen via de CryptoJS bibliotheek
+            const inputHash = CryptoJS.SHA256(inputVal).toString();
 
-                if(inputHash === STORED_HASH) {
-                    sessionStorage.setItem('dashboard_access', 'valid');
-                    openDashboard();
-                } else {
-                    // FOUTMELDING + SPIEK-FUNCTIE
-                    document.getElementById('error-msg').style.display = 'block';
-                    
-                    // Laat de berekende hash zien in het tekstvak
-                    document.getElementById('hash-output').value = inputHash;
-                    
-                    document.getElementById('passwordInput').value = '';
-                    document.getElementById('passwordInput').focus();
-                }
-            } catch (e) {
-                alert("Er ging iets mis met de beveiligings-bibliotheek. Controleer je internetverbinding of download het script lokaal.");
+            if(inputHash === STORED_HASH) {
+                // Sla op in SESSIE
+                sessionStorage.setItem('dashboard_access', 'valid');
+                openDashboard();
+            } else {
+                // Foutmelding
+                document.getElementById('error-msg').style.display = 'block';
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
             }
         }
 
@@ -424,7 +416,7 @@
         // --- EINDE LOGIN ---
 
 
-        // JOUW APPS
+        // JOUW APPS CONFIGURATIE
         const myApps = [
             { id: 1, cat: 'dagelijks', name: "Boodschappen", icon: "fa-shopping-basket", url: "Boodschappen-thuis.html" },
             { id: 2, cat: 'dagelijks', name: "Agenda Jacques en Anita", icon: "fa-calendar-day", url: "https://calendar.google.com" },
