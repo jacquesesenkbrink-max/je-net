@@ -7,6 +7,8 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏠</text></svg>">
 
     <script src="data.js"></script>
@@ -370,20 +372,10 @@
     </div>
 
     <script>
-        // --- VEILIGE LOGIN (ONLINE VERSIE) ---
+        // --- VEILIGE LOGIN (WERKT ALTIJD EN OVERAL) ---
         
-        // Dit is de 'vingerafdruk' (hash) van "zhkttthn1968".
-        // Als iemand de broncode leest, zien ze het wachtwoord niet.
+        // Hash van "zhkttthn1968"
         const STORED_HASH = "e441400827255716183615467611593026330925762817349195356976214636";
-
-        // Functie om tekst om te zetten naar een veilige hash (SHA-256)
-        async function sha256(message) {
-            const msgBuffer = new TextEncoder().encode(message);
-            // Crypto.subtle werkt alleen op HTTPS of localhost!
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
 
         // Check bij het laden of er al een actieve sessie is
         if(sessionStorage.getItem('dashboard_access') === 'valid') {
@@ -392,24 +384,23 @@
             });
         }
 
-        // De inlog functie (async omdat hashing even tijd kost)
-        async function checkLogin() {
-            try {
-                const inputVal = document.getElementById('passwordInput').value;
-                const inputHash = await sha256(inputVal);
+        // De nieuwe checkLogin functie met CryptoJS
+        function checkLogin() {
+            const inputVal = document.getElementById('passwordInput').value;
+            
+            // Hash berekenen via de bibliotheek
+            const inputHash = CryptoJS.SHA256(inputVal).toString();
 
-                if(inputHash === STORED_HASH) {
-                    // Sla op in SESSIE (verdwijnt als browser sluit)
-                    sessionStorage.setItem('dashboard_access', 'valid');
-                    openDashboard();
-                } else {
-                    document.getElementById('error-msg').style.display = 'block';
-                    document.getElementById('passwordInput').value = '';
-                }
-            } catch (error) {
-                // Vangt fouten op als de site niet op HTTPS draait
-                console.error("Login fout (waarschijnlijk geen HTTPS):", error);
-                alert("Let op: Deze veilige login werkt alleen als de site online staat (HTTPS) of via localhost.");
+            if(inputHash === STORED_HASH) {
+                // Sla op in SESSIE
+                sessionStorage.setItem('dashboard_access', 'valid');
+                openDashboard();
+            } else {
+                // Foutmelding
+                document.getElementById('error-msg').style.display = 'block';
+                document.getElementById('passwordInput').value = '';
+                // Focus terug in het veld zodat je direct opnieuw kan typen
+                document.getElementById('passwordInput').focus();
             }
         }
 
@@ -417,7 +408,14 @@
             sessionStorage.removeItem('dashboard_access');
             location.reload();
         }
-        // --- EINDE VEILIGE LOGIN ---
+
+        // Zorg dat de cursor direct in het wachtwoordveld staat bij openen
+        window.onload = function() {
+            if(document.getElementById('login-screen').style.display !== 'none') {
+                 document.getElementById('passwordInput').focus();
+            }
+        };
+        // --- EINDE LOGIN ---
 
 
         // JOUW APPS
