@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Mijn Focus Planner V2.3 (Crash Proof)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <style>
+        :root {
+            --q1-bg: #fff5f5; --q1-border: #cc0000;
+            --q2-bg: #f0fff0; --q2-border: #009900;
+            --q3-bg: #fffff0; --q3-border: #e6b800;
+            --q4-bg: #f9f9f9; --q4-border: #999999;
+            --bg-color: #f4f7f6;
+            --accent-color: #2c3e50;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 15px;
+            color: #333;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: contain; 
+        }
+
+        h1 { text-align: center; font-size: 1.5rem; margin-top: 5px; color: var(--accent-color); margin-bottom: 20px;}
+
+        /* --- STIJLEN VOOR SLEPEN --- */
+        .sortable-ghost { opacity: 0.4; background: #c8ebfb; }
+        .sortable-drag { cursor: grabbing; }
+        .draggable-item { cursor: grab; }
+
+        /* --- QUOTE SECTIE --- */
+        #daily-quote-container {
+            background-color: #eef2f5;
+            border-left: 5px solid #007bff;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-style: italic;
+            color: #555;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+        #quote-text { font-weight: 500; }
+        #quote-author { display: block; margin-top: 5px; font-size: 0.8em; color: #888; text-align: right; font-style: normal;}
+
+        /* --- INPUT SECTIE --- */
+        .input-section {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"], select, button#addBtn, textarea {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        button#addBtn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button#addBtn:active { background-color: #0056b3; }
+
+        /* --- HOOFD LAYOUT --- */
+        .main-container {
+            display: flex;
+            flex-direction: column-reverse; 
+            gap: 30px;
+        }
+
+        /* --- DE LIJST --- */
+        .list-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-top: 6px solid var(--accent-color);
+        }
+
+        .task-card {
+            background: white;
+            border: 1px solid #eee;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            touch-action: pan-y;
+        }
+
+        .tag {
+            font-size: 0.7em; padding: 3px 6px; border-radius: 4px; 
+            color: white; font-weight: bold; margin-right: 8px; 
+            text-transform: uppercase; letter-spacing: 0.5px;
+            vertical-align: middle;
+        }
+
+        /* --- IDEEËN LIJST STIJLEN --- */
+        .idea-item {
+            background: #fffbe6;
+            border: 1px solid #faeab6;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* --- DE MATRIX --- */
+        .matrix-wrapper {
+            display: grid;
+            gap: 15px;
+            grid-template-columns: 1fr; 
+        }
+
+        .label-top, .label-side { display: none; } 
+
+        .quadrant {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 6px solid #ccc; 
+            min-height: 120px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .task-container { min-height: 80px; }
+
+        .q1 { border-color: var(--q1-border); background: var(--q1-bg); }
+        .q2 { border-color: var(--q2-border); background: var(--q2-bg); }
+        .q3 { border-color: var(--q3-border); background: var(--q3-bg); }
+        .q4 { border-color: var(--q4-border); background: var(--q4-bg); opacity: 0.8; }
+
+        .q-title { font-weight: 800; display: flex; justify-content: space-between; margin-bottom: 10px; color: #444; }
+        .q-sub { font-weight: normal; font-size: 0.8em; opacity: 0.7; }
+        
+        .matrix-task-item {
+            background: rgba(255,255,255,0.7);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 8px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            cursor: grab;
+        }
+
+        /* --- CONTROLS / BACKUP BUTTONS --- */
+        .control-panel {
+            margin-top: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .btn-backup {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-clear { background: #f1f1f1; color: #555; }
+        .btn-save { background: #28a745; color: white; }
+        .btn-load { background: #17a2b8; color: white; }
+        .btn-paste { background: #6c757d; color: white; }
+
+        /* --- PASTE AREA --- */
+        #pasteAreaContainer {
+            display: none; /* Hidden by default */
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        /* --- DESKTOP STYLES --- */
+        @media (min-width: 900px) {
+            .input-section { flex-direction: row; }
+            .main-container { flex-direction: row; align-items: flex-start; }
+            
+            .matrix-wrapper {
+                flex: 2;
+                grid-template-columns: 40px 1fr 1fr;
+                grid-template-rows: 40px 1fr 1fr;
+                gap: 20px;
+            }
+
+            .list-wrapper { flex: 1; position: sticky; top: 20px; }
+            
+            .label-top { display: block; text-align: center; font-weight: bold; text-transform: uppercase; color: #777; font-size: 0.8em;}
+            .label-side { display: block; writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; font-weight: bold; text-transform: uppercase; color: #777; font-size: 0.8em; justify-self: center;}
+            
+            .quadrant { border-left: none; border-top: 6px solid; min-height: 250px; }
+            .task-container { min-height: 200px; }
+            
+            .control-panel { flex-direction: row; flex-wrap: wrap; }
+            .btn-backup { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Mijn Focus Vandaag</h1>
+    
+    <div class="input-section">
+        <input type="text" id="taskInput" placeholder="Nieuwe taak..." onkeypress="handleEnter(event)">
+        <select id="quadrantInput">
+            <option value="1">Q1: Urgent & Belangrijk (DOEN)</option>
+            <option value="2">Q2: Niet Urgent & Belangrijk (PLANNEN)</option>
+            <option value="3">Q3: Urgent & Niet Belangrijk (DELEGEREN)</option>
+            <option value="4">Q4: Niet Urgent & Niet Belangrijk (WEG)</option>
+        </select>
+        <select id="priorityInput">
+            <option value="5">🔥 Prio: Hoogst</option>
+            <option value="4">Prio: Hoog</option>
+            <option value="3" selected>Prio: Normaal</option>
+            <option value="2">Prio: Laag</option>
+        </select>
+        <button id="addBtn" type="button" onclick="addTask()">Toevoegen</button>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="list-wrapper">
+            
+            <div id="daily-quote-container">
+                <span id="quote-text">Laden...</span>
+                <span id="quote-author"></span>
+            </div>
+
+            <h2 style="margin-top:0; font-size: 1.2rem;">🚀 Actie Lijst</h2>
+            <div id="smartList"><ol style="padding-left:0; list-style:none; min-height: 50px;" id="action-list-ol"></ol></div>
+            
+            <div class="control-panel">
+                <button type="button" onclick="clearAll()" class="btn-backup btn-clear">
+                    ♻️ Wissen
+                </button>
+            </div>
+            
+            <div class="control-panel" style="margin-top:10px;">
+                <button type="button" onclick="exportData()" class="btn-backup btn-save">
+                    💾 Opslaan
+                </button>
+                <button type="button" onclick="triggerFileImport()" class="btn-backup btn-load">
+                    📂 Bestand Laden
+                </button>
+            </div>
+            
+            <div class="control-panel" style="margin-top:5px;">
+                <button type="button" onclick="togglePasteArea()" class="btn-backup btn-paste">
+                    📋 Plak Backup Code (Veilig)
+                </button>
+            </div>
+
+            <input type="file" id="importFile" style="opacity:0; position:absolute; z-index:-1;" accept=".json" onchange="importData(this)">
+
+            <div id="pasteAreaContainer">
+                <p style="margin-top:0; font-size:0.9em; color:#666;">
+                    <strong>Problemen met bestand laden?</strong><br>
+                    Open je .json bestand in Kladblok, kopieer alles, en plak het hieronder:
+                </p>
+                <textarea id="jsonPasteArea" rows="5" placeholder='Plak hier de backup code (begint met "{")...'></textarea>
+                <button onclick="processPastedData()" style="margin-top:10px; background:#28a745; color:white; border:none; padding:10px; width:100%; border-radius:6px; cursor:pointer;">
+                    ✅ Verwerk Geplakte Code
+                </button>
+            </div>
+
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee;">
+                <h3 style="margin-top:0; font-size: 1.1rem; color: var(--accent-color);">💡 Ideeën & Notities</h3>
+                <div style="display:flex; gap:5px; margin-bottom:10px;">
+                    <input type="text" id="ideaInput" placeholder="Nieuw idee..." onkeypress="handleIdeaEnter(event)">
+                    <button type="button" onclick="addIdea()" style="width:auto; padding:0 15px; background:#f0ad4e; color:white; border:none; border-radius:6px; font-weight:bold;">+</button>
+                </div>
+                <div id="ideaContainer" style="min-height: 50px;">
+                    </div>
+            </div>
+        </div>
+
+        <div class="matrix-wrapper">
+            <div></div> <div class="label-top">Urgent</div> <div class="label-top">Niet Urgent</div>
+            <div class="label-side">Belangrijk</div>
+            
+            <div class="quadrant q1" id="box-q1">
+                <div class="q-title">DOEN <span class="q-sub">Nu / Crisis</span></div>
+                <div class="task-container" data-q="1"></div>
+            </div>
+
+            <div class="quadrant q2" id="box-q2">
+                <div class="q-title">PLANNEN <span class="q-sub">Strategie</span></div>
+                <div class="task-container" data-q="2"></div>
+            </div>
+
+            <div class="label-side">Niet Belangrijk</div>
+
+            <div class="quadrant q3" id="box-q3">
+                <div class="q-title">DELEGEREN <span class="q-sub">Ruis</span></div>
+                <div class="task-container" data-q="3"></div>
+            </div>
+
+            <div class="quadrant q4" id="box-q4">
+                <div class="q-title">ELIMINEREN <span class="q-sub">Weg</span></div>
+                <div class="task-container" data-q="4"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- QUOTE LOGICA ---
+        const quotes = [
+            { text: "Het geheim van vooruitkomen is beginnen.", author: "Mark Twain" },
+            { text: "Wat belangrijk is, is zelden urgent en wat urgent is, is zelden belangrijk.", author: "Dwight Eisenhower" },
+            { text: "Focus op productief zijn, niet op druk zijn.", author: "Tim Ferriss" },
+            { text: "Je hoeft niet de hele trap te zien om de eerste stap te zetten.", author: "Martin Luther King Jr." },
+            { text: "Discipline is kiezen tussen wat je nu wilt en wat je het liefste wilt.", author: "Abraham Lincoln" },
+            { text: "Doe eerst wat nodig is, dan wat mogelijk is, en plotseling doe je het onmogelijke.", author: "Franciscus van Assisi" },
+            { text: "Stel niet uit tot morgen wat je vandaag kunt doen.", author: "Benjamin Franklin" },
+            { text: "Er is niets zo nutteloos als het heel efficiënt uitvoeren van iets dat helemaal niet gedaan zou moeten worden.", author: "Peter Drucker" },
+            { text: "Actie is de fundamentele sleutel tot elk succes.", author: "Pablo Picasso" },
+            { text: "Een doel zonder plan is slechts een wens.", author: "Antoine de Saint-Exupéry" }
+        ];
+
+        function initQuote() {
+            const today = new Date().toDateString(); 
+            const savedDate = localStorage.getItem('quoteDate');
+            let savedQuoteIndex = localStorage.getItem('dailyQuoteIndex');
+
+            if (savedDate !== today || savedQuoteIndex === null) {
+                savedQuoteIndex = Math.floor(Math.random() * quotes.length);
+                localStorage.setItem('quoteDate', today);
+                localStorage.setItem('dailyQuoteIndex', savedQuoteIndex);
+            }
+
+            const q = quotes[savedQuoteIndex];
+            document.getElementById('quote-text').innerText = `"${q.text}"`;
+            document.getElementById('quote-author').innerText = `- ${q.author}`;
+        }
+
+        // --- DATA BEHEER ---
+        let tasks = JSON.parse(localStorage.getItem('eisenhowerTasksMobile')) || [];
+        let ideas = JSON.parse(localStorage.getItem('eisenhowerIdeas')) || [];
+
+        function saveTasks() {
+            localStorage.setItem('eisenhowerTasksMobile', JSON.stringify(tasks));
+        }
+
+        function saveIdeas() {
+            localStorage.setItem('eisenhowerIdeas', JSON.stringify(ideas));
+        }
+
+        function handleEnter(e) { if (e.key === 'Enter') addTask(); }
+        function handleIdeaEnter(e) { if (e.key === 'Enter') addIdea(); }
+
+        function addTask() {
+            const text = document.getElementById('taskInput').value;
+            const q = parseInt(document.getElementById('quadrantInput').value);
+            const p = parseInt(document.getElementById('priorityInput').value);
+
+            if (!text.trim()) return;
+
+            tasks.push({ id: Date.now(), text, q, p });
+            document.getElementById('taskInput').value = '';
+            
+            saveTasks();
+            render(); 
+        }
+
+        function addIdea() {
+            const text = document.getElementById('ideaInput').value;
+            if (!text.trim()) return;
+            ideas.push({ id: Date.now(), text });
+            document.getElementById('ideaInput').value = '';
+            saveIdeas();
+            renderIdeas();
+        }
+
+        function removeTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+            render();
+        }
+
+        function removeIdea(id) {
+            ideas = ideas.filter(i => i.id !== id);
+            saveIdeas();
+            renderIdeas();
+        }
+
+        function clearAll() {
+            if(confirm("Weet je zeker dat je alles wilt wissen voor een nieuwe dag?")) {
+                tasks = [];
+                localStorage.removeItem('eisenhowerTasksMobile'); 
+                render();
+            }
+        }
+
+        // --- IMPORT / EXPORT FUNCTIES (CRASH PROOF) ---
+        
+        function exportData() {
+            const backup = {
+                version: "2.3",
+                timestamp: new Date().toISOString(),
+                tasks: tasks,
+                ideas: ideas
+            };
+            const dataStr = JSON.stringify(backup, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            const dateStr = new Date().toISOString().slice(0, 10);
+            a.download = `FocusPlanner_Backup_${dateStr}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function triggerFileImport() {
+            // Trigger de file input
+            document.getElementById('importFile').click();
+        }
+
+        function importData(inputElement) {
+            const file = inputElement.files[0];
+            if (!file) return;
+
+            // We gebruiken een timeout om de UI thread van de browser te laten rusten 
+            // nadat de file dialog sluit. Dit voorkomt vaak crashes in Edge.
+            setTimeout(() => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    processJSON(e.target.result);
+                };
+                reader.readAsText(file);
+                // Reset input
+                inputElement.value = '';
+            }, 500);
+        }
+
+        function togglePasteArea() {
+            const el = document.getElementById('pasteAreaContainer');
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function processPastedData() {
+            const text = document.getElementById('jsonPasteArea').value;
+            if(!text.trim()) { alert("Plak eerst de tekst in het vak."); return; }
+            processJSON(text);
+            document.getElementById('pasteAreaContainer').style.display = 'none';
+            document.getElementById('jsonPasteArea').value = '';
+        }
+
+        function processJSON(jsonString) {
+            try {
+                const data = JSON.parse(jsonString);
+                
+                if (data && Array.isArray(data.tasks)) {
+                    if(confirm(`Gegevens gevonden van ${data.timestamp ? data.timestamp.slice(0,10) : '?'}. Overschrijven?`)) {
+                        tasks = data.tasks;
+                        ideas = Array.isArray(data.ideas) ? data.ideas : [];
+                        saveTasks();
+                        saveIdeas();
+                        render();
+                        renderIdeas();
+                        alert("✅ Succesvol ingeladen!");
+                    }
+                } else {
+                    alert("❌ Ongeldig formaat. Dit is geen Focus Planner backup.");
+                }
+            } catch (err) {
+                alert("❌ Fout bij verwerken: " + err.message);
+            }
+        }
+
+        function getStar(p) { return p === 5 ? "🔥" : "★".repeat(p); }
+        function getColor(q) { 
+            if(q==1) return '#cc0000'; if(q==2) return '#009900'; 
+            if(q==3) return '#e6b800'; return '#999'; 
+        }
+
+        // --- RENDERING & SORTING LOGICA ---
+
+        function render() {
+            document.querySelectorAll('.task-container').forEach(el => el.innerHTML = '');
+            const listEl = document.getElementById('action-list-ol');
+            if(listEl) listEl.innerHTML = '';
+
+            if(!tasks || !Array.isArray(tasks)) { tasks = []; }
+
+            tasks.forEach(t => {
+                // MATRIX
+                const div = document.createElement('div');
+                div.className = 'matrix-task-item draggable-item';
+                div.setAttribute('data-id', t.id);
+                div.innerHTML = `<span>${t.text} <small style='color:#888'>${getStar(t.p)}</small></span> <span onclick="removeTask(${t.id})" style="color:#c00; font-weight:bold; cursor:pointer; padding-left:10px;">×</span>`;
+                
+                const container = document.querySelector(`.task-container[data-q="${t.q}"]`);
+                if(container) container.appendChild(div);
+
+                // LIJST
+                if(t.q !== 4 && listEl) {
+                    const li = document.createElement('li');
+                    li.className = 'task-card draggable-item';
+                    li.setAttribute('data-id', t.id);
+                    li.style.borderLeft = `5px solid ${getColor(t.q)}`;
+                    
+                    const qLabel = t.q === 1 ? "DOEN" : t.q === 2 ? "PLAN" : "DEL";
+                    const bg = getColor(t.q);
+
+                    li.innerHTML = `
+                        <div style="flex-grow:1; pointer-events:none;">
+                            <span class="tag" style="background:${bg}">${qLabel}</span>
+                            <strong>${t.text}</strong>
+                        </div>
+                        <div style="min-width: 50px; text-align:right;">
+                            <small style="color:#666; display:block;">${getStar(t.p)}</small>
+                            <span onclick="removeTask(${t.id})" style="color:#c00; font-size:1.2em; font-weight:bold; cursor:pointer;">×</span>
+                        </div>
+                    `;
+                    listEl.appendChild(li);
+                }
+            });
+
+            if (listEl && tasks.filter(t => t.q !== 4).length === 0) {
+                listEl.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">Nog geen taken vandaag.</div>';
+            }
+
+            initMatrixSortables();
+            initListSortable();
+        }
+
+        function renderIdeas() {
+            const container = document.getElementById('ideaContainer');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            if(!ideas || !Array.isArray(ideas)) { ideas = []; }
+
+            ideas.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'idea-item draggable-item';
+                div.setAttribute('data-id', item.id);
+                div.innerHTML = `
+                    <span style="flex-grow:1">${item.text}</span>
+                    <span onclick="removeIdea(${item.id})" style="color:#999; cursor:pointer; font-weight:bold; padding:5px;">×</span>
+                `;
+                container.appendChild(div);
+            });
+
+            initIdeaSortable();
+        }
+
+        // --- SORTABLE JS CONFIGURATIE ---
+
+        function initMatrixSortables() {
+            const containers = document.querySelectorAll('.task-container');
+            containers.forEach(container => {
+                new Sortable(container, {
+                    group: 'matrix',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    delay: 100, 
+                    delayOnTouchOnly: true,
+                    onEnd: function (evt) { updateMatrixOrder(); }
+                });
+            });
+        }
+
+        function updateMatrixOrder() {
+            let newTasksArray = [];
+            const scanBox = (qNum) => {
+                const box = document.querySelector(`.task-container[data-q="${qNum}"]`);
+                if(!box) return;
+                const items = box.querySelectorAll('.matrix-task-item');
+                items.forEach(item => {
+                    const id = parseInt(item.getAttribute('data-id'));
+                    const taskData = tasks.find(t => t.id === id);
+                    if (taskData) {
+                        taskData.q = qNum; 
+                        newTasksArray.push(taskData);
+                    }
+                });
+            };
+
+            scanBox(1); scanBox(2); scanBox(3); scanBox(4);
+            tasks = newTasksArray;
+            saveTasks();
+            render(); 
+        }
+
+        function initListSortable() {
+            const listEl = document.getElementById('action-list-ol');
+            if(!listEl) return;
+            new Sortable(listEl, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                delay: 100,
+                delayOnTouchOnly: true,
+                onEnd: function (evt) {
+                    const newIds = Array.from(listEl.querySelectorAll('.task-card')).map(el => parseInt(el.getAttribute('data-id')));
+                    const q4Items = tasks.filter(t => t.q === 4);
+                    const sortedNonQ4 = [];
+                    newIds.forEach(id => {
+                        const t = tasks.find(x => x.id === id);
+                        if(t) sortedNonQ4.push(t);
+                    });
+                    tasks = [...sortedNonQ4, ...q4Items];
+                    saveTasks();
+                    render();
+                }
+            });
+        }
+
+        function initIdeaSortable() {
+            const container = document.getElementById('ideaContainer');
+            if(!container) return;
+            new Sortable(container, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                delay: 100,
+                delayOnTouchOnly: true,
+                onEnd: function (evt) {
+                    const newIds = Array.from(container.querySelectorAll('.idea-item')).map(el => parseInt(el.getAttribute('data-id')));
+                    const newIdeas = [];
+                    newIds.forEach(id => {
+                        const item = ideas.find(i => i.id === id);
+                        if(item) newIdeas.push(item);
+                    });
+                    ideas = newIdeas;
+                    saveIdeas();
+                }
+            });
+        }
+
+        // Starten
+        initQuote();
+        render();
+        renderIdeas();
+
+    </script>
+</body>
+</html>
