@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD Casus: Het Blauw-Groene Profiel</title>
+    <style>
+        :root {
+            --md-blue: #005CA9;
+            --md-green: #00964E;
+            --md-yellow: #FFC20E;
+            --md-red: #E30613;
+            --md-purple: #6A3492;
+            --md-orange: #F58220;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --sidebar-width: 260px;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Sidebar Styling --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .brand {
+            padding: 0 20px 30px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            font-size: 0.95rem;
+            border-left: 4px solid transparent;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.05);
+            color: white;
+        }
+
+        .nav-item.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: var(--md-blue); /* Default active color */
+        }
+        
+        /* Dynamic border colors based on section */
+        .nav-item:nth-child(2).active { border-left-color: var(--md-blue); }
+        .nav-item:nth-child(3).active { border-left-color: var(--md-orange); }
+        .nav-item:nth-child(4).active { border-left-color: var(--md-red); }
+        .nav-item:nth-child(5).active { border-left-color: var(--md-purple); }
+        .nav-item:nth-child(6).active { border-left-color: var(--md-green); }
+
+        .nav-icon {
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        /* --- Main Content Styling --- */
+        .main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 60px;
+            scroll-behavior: smooth;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Typography & Elements --- */
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+
+        p {
+            line-height: 1.7;
+            color: #4a4a4a;
+            font-size: 1.05rem;
+        }
+
+        /* --- Cards & Boxes --- */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-top: 5px solid #ccc;
+        }
+
+        .card-blue { border-top-color: var(--md-blue); }
+        .card-green { border-top-color: var(--md-green); }
+        .card-yellow { border-top-color: var(--md-yellow); }
+        .card-red { border-top-color: var(--md-red); }
+
+        .card h3 { margin-top: 0; }
+        .card-blue h3 { color: var(--md-blue); }
+        .card-green h3 { color: var(--md-green); }
+
+        .highlight-box {
+            background-color: #fff;
+            border-left: 5px solid var(--md-orange);
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .quote {
+            font-style: italic;
+            font-size: 1.2rem;
+            color: #555;
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            margin: 30px 0;
+            border: 1px dashed #ccc;
+        }
+
+        /* --- Lists --- */
+        ul.custom-list {
+            list-style: none;
+            padding: 0;
+        }
+        ul.custom-list li {
+            padding-left: 25px;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        ul.custom-list li::before {
+            content: "•";
+            color: var(--md-blue);
+            font-weight: bold;
+            font-size: 1.5em;
+            position: absolute;
+            left: 0;
+            top: -5px;
+        }
+
+        /* --- Mobile Responsiveness --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; height: auto; overflow: auto; }
+            .sidebar { width: 100%; padding: 10px 0; }
+            .nav-item { padding: 10px 20px; }
+            .main { padding: 20px; }
+            .profile-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="brand">
+            <span class="brand-dot" style="background:var(--md-blue)"></span>
+            <span class="brand-dot" style="background:var(--md-green)"></span>
+            MD Expert Casus
+        </div>
+        <div class="nav-item active" onclick="showPage('intro', this)">
+            <span class="nav-icon">👤</span> Het Profiel
+        </div>
+        <div class="nav-item" onclick="showPage('dilemma', this)">
+            <span class="nav-icon">🧩</span> Waarom "Freubelen" stokt
+        </div>
+        <div class="nav-item" onclick="showPage('valkuil', this)">
+            <span class="nav-icon">🧹</span> De Grote Valkuil
+        </div>
+        <div class="nav-item" onclick="showPage('autisme', this)">
+            <span class="nav-icon">🧠</span> Link met Autisme?
+        </div>
+        <div class="nav-item" onclick="showPage('flapuit', this)">
+            <span class="nav-icon">💥</span> Het "Flapuit" Gedrag
+        </div>
+        <div class="nav-item" onclick="showPage('advies', this)">
+            <span class="nav-icon">✅</span> Concreet Advies
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="container">
+
+            <div id="intro" class="page active">
+                <h1>Casus Analyse</h1>
+                <div class="subtitle">Het Blauw-Groene MD Profiel</div>
+                
+                <p>Deze analyse zoomt in op een persoon met twee dominante drijfveren. De combinatie van deze twee kleuren bepaalt voor een groot deel het gedrag, de behoeften en de valkuilen.</p>
+
+                <div class="profile-grid">
+                    <div class="card card-blue">
+                        <h3>BLAUW: Structuur & Zekerheid</h3>
+                        <p>Deze drijfveer is gericht op kwaliteit, duidelijkheid en afspraken. Blauw wil organiseren, plannen en controleren. De valkuil is perfectionisme en starheid.</p>
+                        <ul class="custom-list" style="margin-top:15px; font-size:0.9rem;">
+                            <li>Eerst denken, dan doen</li>
+                            <li>Afspraak is afspraak</li>
+                            <li>Orde en netheid</li>
+                        </ul>
+                    </div>
+                    <div class="card card-green">
+                        <h3>GROEN: Harmonie & Mensen</h3>
+                        <p>Deze drijfveer stelt mensen en sociale banden voorop. Groen wil communiceren, verbinden en helpen. De valkuil is cijferen zichzelf weg en conflictvermijding.</p>
+                        <ul class="custom-list" style="margin-top:15px; font-size:0.9rem;">
+                            <li>Eerst voelen, dan doen</li>
+                            <li>Zorgzaam en loyaal</li>
+                            <li>Sfeergevoelig</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dilemma" class="page">
+                <h1>Het Dilemma</h1>
+                <div class="subtitle">Van wens naar werkelijkheid: Waarom creativiteit blijft liggen</div>
+
+                <p>De persoon geeft aan graag creatief bezig te willen zijn ("freubelen"), maar komt er niet toe. Dit is geen luiheid, maar een <strong>conflict tussen drijfveren</strong>.</p>
+
+                <div class="highlight-box" style="border-left-color: var(--md-blue);">
+                    <strong>⛔ De Blauwe Rem: Kwaliteit & Angst voor Rommel</strong><br><br>
+                    Creativiteit is chaos. Voor Blauw is chaos onrust.
+                    <ul>
+                        <li><em>"Wordt het wel mooi genoeg?"</em> (Kwaliteitsdrang blokkeert de start).</li>
+                        <li><em>"Ik weet niet precies hoe het moet."</em> (Gebrek aan instructie/plan).</li>
+                        <li><em>"Het geeft zo'n rommel."</em> (Behoefte aan orde).</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box" style="border-left-color: var(--md-green);">
+                    <strong>⛔ De Groene Rem: Dienstbaarheid & Eenzaamheid</strong><br><br>
+                    Tijd voor jezelf nemen voelt egoïstisch.
+                    <ul>
+                        <li><em>"Ik moet eerst nog even die vriendin appen/helpen."</em> (Anderen gaan voor).</li>
+                        <li><em>"In mijn eentje is er niks aan."</em> (Gebrek aan verbinding).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="valkuil" class="page">
+                <h1>De Grote Valkuil</h1>
+                <div class="subtitle">"Eerst moet alles af..."</div>
+
+                <div class="quote">
+                    "Pas als het huis aan kant is, mag ik ontspannen."
+                </div>
+
+                <p>Dit is de klassieke valkuil voor Blauw-Groen. Omdat een huishouden nooit 100% 'klaar' is, komt het moment van ontspanning nooit. De Blauwe behoefte aan een 'leeg hoofd' en een 'lege tafel' blokkeert de creatieve start.</p>
+
+                <h2>De Oplossing: Hack je profiel</h2>
+                
+                <div class="profile-grid">
+                    <div class="card card-blue">
+                        <h3>Stap 1: Maak het Blauw</h3>
+                        <p>Draai de volgorde om. Plan het plezier in de agenda. <strong>Afspraak met jezelf = Afspraak.</strong></p>
+                        <p>Gebruik een <strong>'Rommel-begrenzer'</strong>: Werk op een groot dienblad of in een specifieke doos. Zo blijft de rommel letterlijk 'binnen de lijntjes'. Dit geeft je Blauwe brein rust, zonder dat je het hele huis hoeft te poetsen.</p>
+                    </div>
+                    <div class="card card-green">
+                        <h3>Stap 2: Maak het Groen</h3>
+                        <p>Haal het uit de isolatie. Verbind er een <strong>sociaal doel</strong> aan.</p>
+                        <p>Maak iets <em>voor</em> iemand anders (cadeau) of doe het <em>samen</em>. Dan voelt de tijdsbesteding 'nuttig' voor de ander en niet egoïstisch.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="autisme" class="page">
+                <h1>Diepere Inzichten</h1>
+                <div class="subtitle">Is er een link met het Autisme Spectrum?</div>
+
+                <p>Soms wordt extreem Blauw gedrag verward met autisme. Er zijn overeenkomsten in gedrag, maar de oorzaak verschilt.</p>
+
+                <div class="highlight-box" style="border-left-color: #666;">
+                    <strong>De Rigiditeit (Starheid)</strong><br>
+                    Mensen met autisme hebben vaak behoefte aan voorspelbaarheid en vaste routines. Als kaders wegvallen, ontstaat stress.<br><br>
+                    <em>De MD Link:</em> Iemand met extreem <strong>Blauw</strong> heeft ditzelfde gedrag, maar vanuit de drijfveer om <strong>zekerheid</strong> te creëren. Het is een mechanisme om fouten te voorkomen, geen neurobiologisch onvermogen om te schakelen (hoewel het effect hetzelfde kan lijken).
+                </div>
+
+                <h3>Het cruciale verschil: Groen</h3>
+                <p>Het Autisme Spectrum wordt vaak gekenmerkt door moeite met sociale interactie en het 'lezen' van anderen. Iemand met een <strong>Blauw-Groen</strong> profiel heeft doorgaans juist een <strong>zeer sterke antenne</strong> voor de emoties van anderen (Groen). Ze zijn empathisch en sfeergevoelig. Tenzij er sprake is van totale overprikkeling, is dit een contra-indicatie voor klassieke 'sociale blindheid'.</p>
+            </div>
+
+            <div id="flapuit" class="page">
+                <h1>Communicatie</h1>
+                <div class="subtitle">Het onverwachte "Flapuit" gedrag</div>
+
+                <p>Normaal is dit profiel de nuance zelve: "Eerst denken (Blauw), en niemand kwetsen (Groen)." Als deze persoon er toch ineens iets uitflapt, is dat een alarmsignaal.</p>
+
+                <h3>De 3 Triggers</h3>
+                <ul class="custom-list">
+                    <li><strong>De Emmer is vol (Opkroppen):</strong> Conflicten worden lang vermeden (Groen). Irritaties stapelen zich op totdat de druk te hoog wordt. Dan komt alles er ongenuanceerd uit.</li>
+                    <li><strong>Onrechtvaardigheid (Blauw):</strong> Als regels, waarheid of afspraken grof geweld wordt aangedaan, wint de verontwaardiging het van de nuance.</li>
+                    <li><strong>Bescherming van de zwakkere (Groen):</strong> Als iemand anders gepest of benadeeld wordt, springt deze persoon er als een leeuw tussen.</li>
+                </ul>
+
+                <div class="quote" style="background: #fff0f0; border-color: var(--md-red); color: var(--md-red);">
+                    Het gevolg is bijna altijd: <strong>Directe Spijt.</strong><br>
+                    <span style="font-size: 0.9rem; color: #555;">Want: "Ik heb niet netjes gehandeld (Blauw faalt)" en "Ik heb de sfeer verpest (Groen faalt)."</span>
+                </div>
+            </div>
+
+            <div id="advies" class="page">
+                <h1>Conclusie & Advies</h1>
+                <div class="subtitle">Hoe help je deze persoon verder?</div>
+
+                <div class="profile-grid">
+                    <div class="card" style="border-top-color: #333;">
+                        <h3>Voor de persoon zelf</h3>
+                        <ul class="custom-list">
+                            <li>Stop met wachten tot "alles af is".</li>
+                            <li>Plan je hobby net zo serieus als je werk (Blauw).</li>
+                            <li>Koppel je hobby aan een ander (cadeau/samen) om je schuldgevoel weg te nemen (Groen).</li>
+                        </ul>
+                    </div>
+                    <div class="card" style="border-top-color: #333;">
+                        <h3>Voor de omgeving</h3>
+                        <ul class="custom-list">
+                            <li>Haal het uit de vrijblijvendheid. Zeg niet: "Je moet eens wat leuks gaan doen", maar: "Zullen we zaterdag om 14:00 samen knutselen?"</li>
+                            <li>Toon begrip bij stress: Zie starheid niet als onwil, maar als een roep om duidelijkheid.</li>
+                            <li>Als ze 'uit hun slof schieten': Weet dat het voortkomt uit betrokkenheid, niet uit agressie.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function showPage(pageId, element) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+
+            // Update nav active state
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            element.classList.add('active');
+
+            // Scroll to top for mobile
+            if(window.innerWidth <= 768) {
+                document.querySelector('.main').scrollTop = 0;
+            }
+        }
+    </script>
+</body>
+</html>
