@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD Expert Guide - Werk</title>
+    <style>
+        :root {
+            --geel: #FFC000; --groen: #00B050; --oranje: #ED7D31;
+            --blauw: #0070C0; --rood: #C00000; --paars: #7030A0;
+            --bg: #f9f4ef; --text: #333; --card-bg: #ffffff;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; max-width: 800px; margin: 0 auto; }
+        
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #7f8c8d; margin-bottom: 30px; font-size: 0.9em; }
+        
+        /* Layout: Verticale stapel (zoals in privé editie) */
+        .grid { display: flex; flex-direction: column; gap: 15px; }
+        
+        .card { 
+            background: var(--card-bg); border-radius: 12px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; 
+            border-left: 10px solid transparent;
+            transition: transform 0.2s;
+        }
+        
+        /* Kleuren borders */
+        .card.geel { border-left-color: var(--geel); }
+        .card.groen { border-left-color: var(--groen); }
+        .card.oranje { border-left-color: var(--oranje); }
+        .card.blauw { border-left-color: var(--blauw); }
+        .card.rood { border-left-color: var(--rood); }
+        .card.paars { border-left-color: var(--paars); }
+
+        .header { 
+            padding: 18px 20px; cursor: pointer; display: flex; 
+            justify-content: space-between; align-items: center; 
+            font-weight: 700; font-size: 1.1em; color: #444; background: #fafafa; 
+            border-bottom: 1px solid transparent;
+            transition: background 0.2s;
+            user-select: none;
+        }
+        .header:hover { background: #f0f0f0; }
+
+        /* Vloeiende open/dicht animatie (Accordion stijl) */
+        .content { 
+            max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; 
+            opacity: 0;
+        }
+        .card.active .content { 
+            opacity: 1;
+            /* max-height wordt met JS geregeld */
+        }
+        .card.active .header { border-bottom: 1px solid #eee; background: #fff; }
+
+        .inner-padding { padding: 0; /* Padding zit in de tab-content */ }
+
+        /* TAB STYLE (Geïntegreerd in de nieuwe look) */
+        .tab-container { display: flex; background: #f9f9f9; border-bottom: 1px solid #eee; }
+        .tab { 
+            flex: 1; padding: 15px; text-align: center; cursor: pointer; 
+            font-size: 0.9em; font-weight: 600; color: #777; transition: 0.3s; user-select: none;
+        }
+        .tab:hover { background: #f0f0f0; }
+        .tab.active { background: white; color: #333; box-shadow: inset 0 -3px 0 #333; }
+        
+        /* Kleur specifieke tabs indien actief */
+        .card.geel .tab.active { box-shadow: inset 0 -3px 0 var(--geel); color: #b78900; }
+        .card.groen .tab.active { box-shadow: inset 0 -3px 0 var(--groen); color: var(--groen); }
+        .card.oranje .tab.active { box-shadow: inset 0 -3px 0 var(--oranje); color: var(--oranje); }
+        .card.blauw .tab.active { box-shadow: inset 0 -3px 0 var(--blauw); color: var(--blauw); }
+        .card.rood .tab.active { box-shadow: inset 0 -3px 0 var(--rood); color: var(--rood); }
+        .card.paars .tab.active { box-shadow: inset 0 -3px 0 var(--paars); color: var(--paars); }
+
+        .tab-content { display: none; padding: 25px; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* TEXT STYLING */
+        ul { padding-left: 20px; margin: 0; margin-bottom: 15px; }
+        li { margin-bottom: 8px; line-height: 1.6; font-size: 0.95em; color: #444; }
+        
+        .label { 
+            font-size: 0.75em; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            color: #2c3e50; 
+            margin-bottom: 10px; 
+            display: block; 
+            font-weight: 800; 
+            border-bottom: 2px solid #f0f0f0; 
+            padding-bottom: 5px;
+            margin-top: 5px;
+        }
+        
+        /* Checkvragen styling */
+        .check-item { margin-bottom: 12px; }
+        .check-vraag { font-weight: 600; color: #222; display: block; margin-bottom: 3px; }
+        .check-antwoord { font-style: italic; color: #666; display: block; font-size: 0.9em; padding-left: 10px; border-left: 3px solid #eee; }
+
+        .toggle-icon { font-size: 0.8em; transition: transform 0.3s; }
+        .card.active .toggle-icon { transform: rotate(180deg); }
+
+    </style>
+</head>
+<body>
+
+    <h1>MD Expert Guide</h1>
+    <p class="subtitle">Analyse, checkvragen & aanpak (Werk)</p>
+
+    <div class="grid" id="accordion">
+
+        <div class="card geel" id="card-geel">
+            <div class="header" onclick="toggleCard(this)">
+                <span>🟨 GEEL - Visie & Inzicht</span>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="content">
+                <div class="inner-padding">
+                    <div class="tab-container">
+                        <div class="tab active" onclick="switchTab('card-geel', 'spot-geel', this)">🔍 Herkennen</div>
+                        <div class="tab" onclick="switchTab('card-geel', 'act-geel', this)">💡 Aanpakken</div>
+                    </div>
+                    
+                    <div id="spot-geel" class="tab-content active">
+                        <span class="label">Wat hoor je ze zeggen?</span>
+                        <ul>
+                            <li>"Waarom doen we dit eigenlijk?"</li>
+                            <li>"Dat is onzin, daar is niet goed over nagedacht."</li>
+                            <li>"Ik zie nog wel wat complexiteit in..."</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">Gedrag & Signalen</span>
+                        <ul>
+                            <li>Wil vrijheid en conceptueel denken.</li>
+                            <li>Kijkt vaak weg (nadenkend) of maakt het gesprek abstracter.</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">De Checkvragen</span>
+                        <div class="check-item">
+                            <span class="check-vraag">"Wat vind jij van de achterliggende visie?"</span>
+                            <span class="check-antwoord">Reactie: Gaat 'aan', begint breed te praten en legt verbanden.</span>
+                        </div>
+                        <div class="check-item">
+                            <span class="check-vraag">"Heb je even tijd om dit complexe stuk te analyseren?"</span>
+                            <span class="check-antwoord">Reactie: Ja graag! Wil begrijpen hoe het in elkaar zit (niet hoe het moet).</span>
+                        </div>
+                        <div class="check-item">
+                            <span class="check-vraag">"Zie jij nog beren op de weg voor de toekomst?"</span>
+                            <span class="check-antwoord">Reactie: Komt met scenario's en "wat als"-vragen die anderen over het hoofd zagen.</span>
+                        </div>
+                    </div>
+
+                    <div id="act-geel" class="tab-content">
+                        <span class="label">De Allergie (Vermijd dit!)</span>
+                        <ul>
+                            <li>"Domme" regels moeten volgen zonder uitleg.</li>
+                            <li>Dichtgetimmerde kaders die de vrijheid beperken.</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">Succesvolle Interventie</span>
+                        <ul>
+                            <li>Toon intellectueel respect: "Interessante gedachte, leg eens uit?"</li>
+                            <li>Neem de tijd. Dwing geen direct ja/nee af.</li>
+                            <li>Vraag om inzicht en overzicht, niet om details.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card groen" id="card-groen">
+            <div class="header" onclick="toggleCard(this)">
+                <span>🟩 GROEN - Harmonie & Mens</span>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="content">
+                <div class="inner-padding">
+                    <div class="tab-container">
+                        <div class="tab active" onclick="switchTab('card-groen', 'spot-groen', this)">🔍 Herkennen</div>
+                        <div class="tab" onclick="switchTab('card-groen', 'act-groen', this)">💡 Aanpakken</div>
+                    </div>
+                    
+                    <div id="spot-groen" class="tab-content active">
+                        <span class="label">Wat hoor je ze zeggen?</span>
+                        <ul>
+                            <li>"We moeten het wel samen doen."</li>
+                            <li>"Ik wil niemand kwetsen."</li>
+                            <li>"Wordt iedereen wel gehoord?"</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">Gedrag & Signalen</span>
+                        <ul>
+                            <li>Stelt sociale banden en mensen voorop.</li>
+                            <li>Zoekt constant oogcontact en bevestiging.</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">De Checkvragen</span>
+                        <div class="check-item">
+                            <span class="check-vraag">"Hoe denk je dat het team hierop gaat reageren?"</span>
+                            <span class="check-antwoord">Reactie: Toont direct zorg over draagvlak en de sfeer in de groep.</span>
+                        </div>
+                        <div class="check-item">
+                            <span class="check-vraag">"Zullen we dit samen oppakken?"</span>
+                            <span class="check-antwoord">Reactie: Zichtbare opluchting; doet dingen liever niet alleen.</span>
+                        </div>
+                        <div class="check-item">
+                            <span class="check-vraag">"Wat is jouw gevoel hierbij?"</span>
+                            <span class="check-antwoord">Reactie: Antwoordt vanuit emotie/buikgevoel in plaats van feiten.</span>
+                        </div>
+                    </div>
+
+                    <div id="act-groen" class="tab-content">
+                        <span class="label">De Allergie (Vermijd dit!)</span>
+                        <ul>
+                            <li>Arrogantie, egoïsme en conflicten.</li>
+                            <li>Iemand buitensluiten of onpersoonlijk behandelen.</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">Succesvolle Interventie</span>
+                        <ul>
+                            <li>Maak eerst persoonlijk contact: "Hoe is het met jou?"</li>
+                            <li>Vraag naar het gevoel: "Welke behoefte heb jij hierin?"</li>
+                            <li>Benadruk het wij-gevoel en het gezamenlijke belang.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card oranje" id="card-oranje">
+            <div class="header" onclick="toggleCard(this)">
+                <span>🟧 ORANJE - Resultaat & Status</span>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="content">
+                <div class="inner-padding">
+                    <div class="tab-container">
+                        <div class="tab active" onclick="switchTab('card-oranje', 'spot-oranje', this)">🔍 Herkennen</div>
+                        <div class="tab" onclick="switchTab('card-oranje', 'act-oranje', this)">💡 Aanpakken</div>
+                    </div>
+                    
+                    <div id="spot-oranje" class="tab-content active">
+                        <span class="label">Wat hoor je ze zeggen?</span>
+                        <ul>
+                            <li>"Wat levert het op?" / "Laten we scoren."</li>
+                            <li>"Ik word niet serieus genomen."</li>
+                            <li>"Ik wil hier vooruitgang mee boeken."</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">Gedrag & Signalen</span>
+                        <ul>
+                            <li>Wil het verschil maken, toont ambitie.</li>
+                            <li>Is gevoelig voor imago, status en positie.</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">De Checkvragen</span>
+                        <div class="check-item">
+                            <span class="check-vraag">"Zie jij hier een kans om echt te scoren?"</span>
+                            <span class="check-antwoord">Reactie: Ogen gaan glimmen, wordt enthousiast van winnen/succes.</span>
+                        </div>
+                        <div class="check-item">
+                            <span class="check-vraag">"Wat levert dit ons (en jou) concreet op?"</span>
+                            <span class="check-antwoord">Reactie: Wil praten over resultaat, targets en zichtbaarheid.</span>
+                        </div>
+                        <div class="check-item">
+                            <span class="check-vraag">"Vind je dat dit professioneel genoeg overkomt?"</span>
+                            <span class="check-antwoord">Reactie: Is kritisch op uitstraling en imago. Wil er goed op staan.</span>
+                        </div>
+                    </div>
+
+                    <div id="act-oranje" class="tab-content">
+                        <span class="label">De Allergie (Vermijd dit!)</span>
+                        <ul>
+                            <li>Gezichtsverlies lijden of publiekelijk falen.</li>
+                            <li>Traagheid, saaiheid en gebrek aan ambitie.</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">Succesvolle Interventie</span>
+                        <ul>
+                            <li>Focus op doel en resultaat: "Wat is het gewenste effect?"</li>
+                            <li>Geef complimenten en erkenning (liefst waar anderen bij zijn).</li>
+                            <li>Maak er een uitdaging van: "Denk je dat dit haalbaar is?"</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card blauw" id="card-blauw">
+            <div class="header" onclick="toggleCard(this)">
+                <span>🟦 BLAUW - Structuur & Zekerheid</span>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="content">
+                <div class="inner-padding">
+                    <div class="tab-container">
+                        <div class="tab active" onclick="switchTab('card-blauw', 'spot-blauw', this)">🔍 Herkennen</div>
+                        <div class="tab" onclick="switchTab('card-blauw', 'act-blauw', this)">💡 Aanpakken</div>
+                    </div>
+                    
+                    <div id="spot-blauw" class="tab-content active">
+                        <span class="label">Wat hoor je ze zeggen?</span>
+                        <ul>
+                            <li>"Het is niet duidelijk wat er gedaan moet worden."</li>
+                            <li>"Afspraak is afspraak."</li>
+                            <li>"Het is niet eerlijk / niet volgens de regels."</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">Gedrag & Signalen</span>
+                        <ul>
+                            <li>Wil zekerheid en voorspelbaarheid.</li>
+                            <li>Gestructureerd, punctueel, let op details.</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">De Checkvragen</span>
+                        <div class="check-item">
+                            <span class="check-vraag">"Heb je de planning en de details al kunnen bekijken?"</span>
+                            <span class="check-antwoord">Reactie: Duikt direct op de inhoud, wijst op foutjes of onduidelijkheden.</span>
+                        </div>
+                        <div class="check-item">
+                            <span class="check-vraag">"Zijn de afspraken zo duidelijk genoeg voor jou?"</span>
+                            <span class="check-antwoord">Reactie: Wil bevestiging en alles zwart op wit. Heeft hekel aan vaagheid.</span>
+                        </div>
+                        <div class="check-item">
+                            <span class="check-vraag">"Wat als we halverwege van het plan moeten afwijken?"</span>
+                            <span class="check-antwoord">Reactie: Weerstand of zorg. Wil vasthouden aan de afgesproken route.</span>
+                        </div>
+                    </div>
+
+                    <div id="act-blauw" class="tab-content">
+                        <span class="label">De Allergie (Vermijd dit!)</span>
+                        <ul>
+                            <li>Chaos, vaagheid en onbetrouwbaarheid.</li>
+                            <li>Mensen die afspraken schenden of "maar wat doen".</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">Succesvolle Interventie</span>
+                        <ul>
+                            <li>Wees feitelijk, concreet en correct.</li>
+                            <li>Schep duidelijkheid: "Ik zorg dat helder is wat er van je verwacht wordt."</li>
+                            <li>Kom afspraken stipt na en wees voorspelbaar.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card rood" id="card-rood">
+            <div class="header" onclick="toggleCard(this)">
+                <span>🟥 ROOD - Kracht & Actie</span>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="content">
+                <div class="inner-padding">
+                    <div class="tab-container">
+                        <div class="tab active" onclick="switchTab('card-rood', 'spot-rood', this)">🔍 Herkennen</div>
+                        <div class="tab" onclick="switchTab('card-rood', 'act-rood', this)">💡 Aanpakken</div>
+                    </div>
+                    
+                    <div id="spot-rood" class="tab-content active">
+                        <span class="label">Wat hoor je ze zeggen?</span>
+                        <ul>
+                            <li>"Er gebeurt niets!" (Ongeduld)</li>
+                            <li>"Je bent mijn baas niet!"</li>
+                            <li>"Ik hak de knoop wel door."</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">Gedrag & Signalen</span>
+                        <ul>
+                            <li>Wil stevige actie met volle impact.</li>
+                            <li>Direct, confronterend, spreekt zich uit.</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">De Checkvragen</span>
+                        <div class="check-item">
+                            <span class="check-vraag">"Wanneer zullen we de knoop doorhakken?"</span>
+                            <span class="check-antwoord">Reactie: "Nu meteen." Toont ongeduld en wil tempo maken.</span>
+                        </div>
+                        <div class="check-item">
+                            <span class="check-vraag">"Ik ben het eigenlijk niet met je eens." (Confronteer)</span>
+                            <span class="check-antwoord">Reactie: Veert op, gaat de discussie aan. Respecteert tegengas (mits stevig).</span>
+                        </div>
+                        <div class="check-item">
+                            <span class="check-vraag">"Wie neemt hier de beslissing?"</span>
+                            <span class="check-antwoord">Reactie: Wil weten wie de macht heeft, of trekt die macht naar zich toe.</span>
+                        </div>
+                    </div>
+
+                    <div id="act-rood" class="tab-content">
+                        <span class="label">De Allergie (Vermijd dit!)</span>
+                        <ul>
+                            <li>Soft gedoe, twijfelen en traagheid.</li>
+                            <li>Mensen die over zich heen laten lopen (geen ruggengraat).</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">Succesvolle Interventie</span>
+                        <ul>
+                            <li>Wees direct, kort en krachtig. Draai er niet omheen.</li>
+                            <li>Stel grenzen: "Tot hier en niet verder" (Dit dwingt respect af).</li>
+                            <li>Geef autonomie: "Los het op jouw manier op."</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card paars" id="card-paars">
+            <div class="header" onclick="toggleCard(this)">
+                <span>🟪 PAARS - Veiligheid & Binding</span>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="content">
+                <div class="inner-padding">
+                    <div class="tab-container">
+                        <div class="tab active" onclick="switchTab('card-paars', 'spot-paars', this)">🔍 Herkennen</div>
+                        <div class="tab" onclick="switchTab('card-paars', 'act-paars', this)">💡 Aanpakken</div>
+                    </div>
+                    
+                    <div id="spot-paars" class="tab-content active">
+                        <span class="label">Wat hoor je ze zeggen?</span>
+                        <ul>
+                            <li>"Het voelt niet goed."</li>
+                            <li>"Het is een kwestie van vertrouwen."</li>
+                            <li>"Traditie levend houden / zo doen we dat altijd."</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">Gedrag & Signalen</span>
+                        <ul>
+                            <li>Wil veiligheid, geborgenheid en familiegevoel.</li>
+                            <li>Stelt zich dienstbaar op, creëert binding.</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">De Checkvragen</span>
+                        <div class="check-item">
+                            <span class="check-vraag">"Voel je je hier wel vertrouwd bij?"</span>
+                            <span class="check-antwoord">Reactie: Kijkt je aan, waardeert de vraag. Vertrouwen is de basis.</span>
+                        </div>
+                        <div class="check-item">
+                            <span class="check-vraag">"Ken je de mensen met wie we dit gaan doen?"</span>
+                            <span class="check-antwoord">Reactie: Wil weten of ze 'bij ons horen'. Vreemden zijn een risico.</span>
+                        </div>
+                        <div class="check-item">
+                            <span class="check-vraag">"We doen het toch zoals we het vroeger ook deden?"</span>
+                            <span class="check-antwoord">Reactie: Knikt. Waardering voor traditie, historie en gewoontes.</span>
+                        </div>
+                    </div>
+
+                    <div id="act-paars" class="tab-content">
+                        <span class="label">De Allergie (Vermijd dit!)</span>
+                        <ul>
+                            <li>Respectloosheid naar historie of anciënniteit.</li>
+                            <li>Onveilige situaties en abrupte veranderingen.</li>
+                        </ul>
+                        <span class="label" style="margin-top:20px">Succesvolle Interventie</span>
+                        <ul>
+                            <li>Creëer eerst veiligheid en rust.</li>
+                            <li>Toon respect voor het verleden ("We gooien niet alles weg").</li>
+                            <li>Bouw aan vertrouwen in de relatie, wees dienstbaar.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Functie voor Accordion Effect (van Privé editie)
+        function toggleCard(headerElement) {
+            const card = headerElement.parentElement;
+            const content = card.querySelector('.content');
+            const isActive = card.classList.contains('active');
+
+            // 1. Sluit ALLES eerst
+            document.querySelectorAll('.card').forEach(c => {
+                c.classList.remove('active');
+                c.querySelector('.content').style.maxHeight = null;
+            });
+
+            // 2. Als de aangeklikte nog niet open was, open hem dan
+            if (!isActive) {
+                card.classList.add('active');
+                // Zet max-height op de scrollHeight voor animatie
+                content.style.maxHeight = content.scrollHeight + "px";
+                
+                // Na animatie max-height op 'none' zetten zodat tabs de hoogte kunnen aanpassen
+                setTimeout(() => {
+                    if(card.classList.contains('active')){
+                       content.style.maxHeight = "none";
+                    }
+                }, 400); 
+            }
+        }
+
+        // Functie voor Tabs (van Werk editie, aangepast voor selectie binnen ID)
+        function switchTab(cardId, contentId, tabElement) {
+            var card = document.getElementById(cardId);
+            
+            // Verberg alle tabs in deze kaart
+            card.querySelectorAll('.tab-content').forEach(function(el) {
+                el.classList.remove('active');
+            });
+            
+            // Deactiveer alle tab buttons in deze kaart
+            card.querySelectorAll('.tab').forEach(function(el) {
+                el.classList.remove('active');
+            });
+
+            // Activeer de gekozen tab
+            document.getElementById(contentId).classList.add('active');
+            tabElement.classList.add('active');
+        }
+    </script>
+
+</body>
+</html>
