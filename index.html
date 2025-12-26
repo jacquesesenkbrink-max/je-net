@@ -11,7 +11,7 @@
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏠</text></svg>">
 
-    <script src="data.js"></script>
+    <script src="data.js" onerror="console.log('data.js niet gevonden, fallback actief')"></script>
 
     <style>
         :root {
@@ -228,7 +228,7 @@
         .tabs {
             display: flex;
             justify-content: center;
-            gap: 15px;
+            gap: 10px;
             margin-bottom: 30px;
             flex-wrap: wrap;
         }
@@ -236,13 +236,18 @@
         .tab-btn {
             background: rgba(255,255,255,0.6);
             border: none;
-            padding: 10px 25px;
+            padding: 10px 20px;
             border-radius: 30px;
             cursor: pointer;
             font-weight: 600;
             color: var(--text-dark);
             transition: 0.3s;
             text-shadow: none;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.8);
         }
 
         .tab-btn.active {
@@ -284,6 +289,13 @@
         .app-icon { font-size: 2.2rem; color: var(--primary-color); margin-bottom: 15px; }
         .app-title { font-weight: 600; font-size: 1rem; color: var(--text-dark); }
 
+        /* Animation for app appearance */
+        .app-card { animation: fadeUp 0.5s ease forwards; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .footer-controls {
             margin-top: 40px;
             display: flex;
@@ -308,6 +320,8 @@
             .app-grid { grid-template-columns: repeat(2, 1fr); }
             .weather-wrapper { align-items: center; width: 100%; }
             #radar-popup { right: auto; } 
+            .tabs { gap: 5px; }
+            .tab-btn { padding: 8px 15px; font-size: 0.8rem; }
         }
     </style>
 </head>
@@ -316,7 +330,7 @@
     <div class="container">
         
         <div id="login-screen">
-            <h2>👋 Welkom</h2>
+            <h2>👋 Welkom Thuis</h2>
             <p style="color:#636e72;">Je dashboard is vergrendeld.</p>
             <input type="password" id="passwordInput" placeholder="Wachtwoord" onkeyup="if(event.key === 'Enter') checkLogin()">
             <button class="btn-main" onclick="checkLogin()">Ontgrendelen</button>
@@ -356,15 +370,17 @@
             </div>
 
             <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('dagelijks', event)">Dagelijks</button>
-                <button class="tab-btn" onclick="switchTab('meditatie', event)">Meditatie</button>
+                <button class="tab-btn active" onclick="switchTab('dagelijks', event)">📅 Dagelijks</button>
+                <button class="tab-btn" onclick="switchTab('meditatie', event)">🧘 Inspiratie</button>
+                <button class="tab-btn" onclick="switchTab('werk', event)">🧠 Ontwikkeling</button>
+                <button class="tab-btn" onclick="switchTab('sociaal', event)">🎲 Sociaal</button>
             </div>
 
             <div id="app-container" class="app-grid">
             </div>
 
             <div class="footer-controls">
-                <button class="small-btn" onclick="toggleBackground()"><i class="fas fa-palette"></i> Pastel Kleuren</button>
+                <button class="small-btn" onclick="toggleBackground()"><i class="fas fa-palette"></i> Wissel Achtergrond</button>
                 <button class="small-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Uitloggen</button>
             </div>
         </div>
@@ -373,30 +389,22 @@
 
     <script>
         // --- VEILIGE LOGIN ---
-        
-        // DE CORRECTE HASH (GEKOPIEERD UIT JOUW DIAGNOSE SCHERM):
         const STORED_HASH = "c2ed12441a21c8045a0c466ca90b4454ac85cad01a504d35ed8c8c3945dc8924";
 
-        // Check bij het laden of er al een actieve sessie is
         if(sessionStorage.getItem('dashboard_access') === 'valid') {
             document.addEventListener("DOMContentLoaded", () => {
                 openDashboard();
             });
         }
 
-        // Login functie
         function checkLogin() {
             const inputVal = document.getElementById('passwordInput').value;
-            
-            // Hash berekenen via de CryptoJS bibliotheek
             const inputHash = CryptoJS.SHA256(inputVal).toString();
 
             if(inputHash === STORED_HASH) {
-                // Sla op in SESSIE
                 sessionStorage.setItem('dashboard_access', 'valid');
                 openDashboard();
             } else {
-                // Foutmelding
                 document.getElementById('error-msg').style.display = 'block';
                 document.getElementById('passwordInput').value = '';
                 document.getElementById('passwordInput').focus();
@@ -413,21 +421,27 @@
                  document.getElementById('passwordInput').focus();
             }
         };
-        // --- EINDE LOGIN ---
 
-
-        // JOUW APPS CONFIGURATIE
+        // --- APPS CONFIGURATIE (COMPLEET) ---
         const myApps = [
+            // Categorie: Dagelijks
             { id: 1, cat: 'dagelijks', name: "Boodschappen", icon: "fa-shopping-basket", url: "Boodschappen-thuis.html" },
-            { id: 2, cat: 'dagelijks', name: "Agenda Jacques en Anita", icon: "fa-calendar-day", url: "https://calendar.google.com" },
-            { id: 9, cat: 'dagelijks', name: "Urenrooster Anita", icon: "fa-user-clock", url: "zorgbalans.html" },
-            { id: 3, cat: 'dagelijks', name: "Taken", icon: "fa-check-double", url: "timemanagement v4.html" },
+            { id: 2, cat: 'dagelijks', name: "Agenda", icon: "fa-calendar-alt", url: "https://calendar.google.com" },
+            { id: 3, cat: 'dagelijks', name: "Zorgbalans", icon: "fa-user-clock", url: "zorgbalans.html" },
+            { id: 4, cat: 'dagelijks', name: "Focus Taken", icon: "fa-tasks", url: "timemanagement v4.html" },
             
-            { id: 10, cat: 'meditatie', name: "Meditatie Jacques", icon: "fa-spa", url: "praxis v2.0.html" },
-            { id: 11, cat: 'meditatie', name: "Meditatie Anita", icon: "fa-leaf", url: "bijbelse-meditatie.html" },
-            { id: 14, cat: 'meditatie', name: "MD Anita", icon: "fa-fingerprint", url: "profiel blauw-groen2.html" },
-            { id: 12, cat: 'meditatie', name: "Dialoog spel", icon: "fa-comments", url: "dedialoog v1.0.html" },
-            { id: 13, cat: 'meditatie', name: "Meditatie Levy", icon: "fa-compass", url: "meditatie-reis.html" },
+            // Categorie: Inspiratie / Meditatie
+            { id: 10, cat: 'meditatie', name: "Praxis (Jacques)", icon: "fa-spa", url: "praxis v2.0.html" },
+            { id: 11, cat: 'meditatie', name: "Inspiratie (Anita)", icon: "fa-book-open", url: "bijbelse-meditatie.html" },
+            { id: 12, cat: 'meditatie', name: "Innerlijke Reis", icon: "fa-compass", url: "meditatie-reis.html" },
+            
+            // Categorie: Ontwikkeling / Werk
+            { id: 20, cat: 'werk', name: "MD Profiel", icon: "fa-fingerprint", url: "profiel blauw-groen2.html" },
+            { id: 21, cat: 'werk', name: "MD Expert", icon: "fa-briefcase", url: "mdspotter - werk.html" },
+
+            // Categorie: Sociaal / Spel
+            { id: 30, cat: 'sociaal', name: "De Dialoog", icon: "fa-comments", url: "dedialoog v1.0.html" },
+            { id: 31, cat: 'sociaal', name: "Kleur Bekennen", icon: "fa-palette", url: "kleurbekennen.html" },
         ];
 
         let todaysQuoteId = 0; 
@@ -449,7 +463,7 @@
             startClock();
             setRandomQuote();
             fetchWeather();
-            renderApps('dagelijks');
+            renderApps('dagelijks'); // Start met dagelijks
             
             if(bgMode === 'photo') {
                 const randomImg = natureImages[Math.floor(Math.random() * natureImages.length)];
@@ -465,7 +479,7 @@
                 const options = { weekday: 'long', day: 'numeric', month: 'long' };
                 document.getElementById('live-date').innerText = now.toLocaleDateString('nl-NL', options);
                 const uur = now.getHours();
-                let tekst = "Goedennacht";
+                let tekst = "Goedenacht";
                 if(uur >= 6) tekst = "Goedemorgen";
                 if(uur >= 12) tekst = "Goedemiddag";
                 if(uur >= 18) tekst = "Goedenavond";
@@ -486,17 +500,21 @@
         function renderApps(category) {
             const container = document.getElementById('app-container');
             container.innerHTML = '';
+            
+            // Filter apps
             const filteredApps = myApps.filter(app => app.cat === category);
+            
+            if(filteredApps.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; color: #666;">Geen apps in deze categorie.</p>';
+                return;
+            }
+
             filteredApps.forEach(app => {
                 const div = document.createElement('div');
                 div.className = 'app-card';
                 div.onclick = function() { 
-                    if(app.type === 'alert') {
-                        alert(app.msg);
-                    } else {
-                        const target = app.url.startsWith('http') ? '_blank' : '_self';
-                        window.open(app.url, target);
-                    }
+                    const target = app.url.startsWith('http') ? '_blank' : '_self';
+                    window.open(app.url, target);
                 };
                 div.innerHTML = `
                     <i class="fas ${app.icon} app-icon"></i>
@@ -511,23 +529,19 @@
             const storedDate = localStorage.getItem('praxis_date');
             const storedId = localStorage.getItem('praxis_id');
 
-            if (storedDate === todayStr && storedId !== null) {
-                todaysQuoteId = parseInt(storedId);
-            } else {
-                if(typeof quotesData !== 'undefined') {
-                    todaysQuoteId = Math.floor(Math.random() * quotesData.length);
-                } else {
-                    todaysQuoteId = 0; 
-                }
-                localStorage.setItem('praxis_date', todayStr);
-                localStorage.setItem('praxis_id', todaysQuoteId);
-            }
-
+            // Probeer data.js quotes te gebruiken, anders fallback
             if(typeof quotesData !== 'undefined') {
+                if (storedDate === todayStr && storedId !== null) {
+                    todaysQuoteId = parseInt(storedId);
+                } else {
+                    todaysQuoteId = Math.floor(Math.random() * quotesData.length);
+                    localStorage.setItem('praxis_date', todayStr);
+                    localStorage.setItem('praxis_id', todaysQuoteId);
+                }
                 const q = quotesData[todaysQuoteId];
                 document.getElementById('quote-text').innerText = `"${q.quote}" - ${q.author}`;
             } else {
-                document.getElementById('quote-text').innerText = '"Pluk de dag"';
+                document.getElementById('quote-text').innerText = '"Elke dag is een nieuwe kans."';
             }
         }
 
@@ -561,25 +575,16 @@
                 
                 iconElement.className = 'fas'; 
                 
-                if (code === 0) {
-                    iconElement.classList.add('fa-sun'); 
-                } else if (code >= 1 && code <= 3) {
-                    iconElement.classList.add('fa-cloud-sun'); 
-                } else if (code >= 45 && code <= 48) {
-                    iconElement.classList.add('fa-smog'); 
-                } else if (code >= 51 && code <= 67) {
-                    iconElement.classList.add('fa-cloud-rain'); 
-                } else if (code >= 71 && code <= 77) {
-                    iconElement.classList.add('fa-snowflake'); 
-                } else if (code >= 80 && code <= 82) {
-                    iconElement.classList.add('fa-cloud-showers-heavy'); 
-                } else if (code >= 85 && code <= 86) {
-                    iconElement.classList.add('fa-snowflake'); 
-                } else if (code >= 95) {
-                    iconElement.classList.add('fa-bolt'); 
-                } else {
-                    iconElement.classList.add('fa-cloud'); 
-                }
+                if (code === 0) iconElement.classList.add('fa-sun'); 
+                else if (code <= 3) iconElement.classList.add('fa-cloud-sun'); 
+                else if (code <= 48) iconElement.classList.add('fa-smog'); 
+                else if (code <= 67) iconElement.classList.add('fa-cloud-rain'); 
+                else if (code <= 77) iconElement.classList.add('fa-snowflake'); 
+                else if (code <= 82) iconElement.classList.add('fa-cloud-showers-heavy'); 
+                else if (code <= 86) iconElement.classList.add('fa-snowflake'); 
+                else if (code >= 95) iconElement.classList.add('fa-bolt'); 
+                else iconElement.classList.add('fa-cloud'); 
+
             } catch (e) {
                 console.log("Weer fout:", e);
                 document.getElementById('weather-text').innerText = "--";
@@ -595,14 +600,12 @@
                 document.body.style.backgroundSize = "200% 200%";
                 document.body.style.animation = "gradientMove 15s ease infinite";
                 bgMode = 'pastel';
-                btn.innerHTML = '<i class="fas fa-image"></i> Natuurfoto\'s';
             } else {
                 document.body.style.animation = 'none';
                 const randomImg = natureImages[Math.floor(Math.random() * natureImages.length)];
                 document.body.style.background = `url('${randomImg}') no-repeat center center fixed`;
                 document.body.style.backgroundSize = "cover";
                 bgMode = 'photo';
-                btn.innerHTML = '<i class="fas fa-palette"></i> Pastel Kleuren';
             }
         }
     </script>
