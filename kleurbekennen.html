@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kleur Bekennen - Vrienden & Familie Editie</title>
+    <style>
+        :root {
+            --bg: #e0e5ec;
+            --text: #333;
+            --card-bg: #fff;
+            --accent: #2c3e50;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0; padding: 0; height: 100vh;
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* HEADER */
+        header {
+            background: #fff; height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); z-index: 10;
+        }
+        h1 { margin: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
+        .header-controls { display: flex; gap: 20px; font-size: 0.8rem; color: #999; }
+        .header-link { cursor: pointer; text-decoration: underline; }
+        .header-link:hover { color: var(--accent); }
+
+        .layout { display: flex; flex: 1; padding: 20px; gap: 20px; height: calc(100vh - 60px); }
+        .col-left { flex: 0 0 350px; display: flex; flex-direction: column; align-items: center; }
+        .col-center { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+        .col-right { flex: 0 0 300px; background: #fff; border-radius: 15px; padding: 20px; overflow-y: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+        /* RAD */
+        .wheel-container { position: relative; width: 320px; height: 320px; margin-bottom: 20px; }
+        canvas { width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        .pointer {
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #e74c3c;
+            z-index: 5;
+        }
+        button.spin-btn {
+            background: var(--accent); color: white; border: none; padding: 15px 40px; font-size: 1.2rem; border-radius: 50px;
+            cursor: pointer; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        button.spin-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* GAME AREA */
+        .game-card {
+            background: #fff; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            width: 100%; max-width: 900px; height: 100%; display: flex; flex-direction: column; display: none;
+        }
+
+        /* PHASE INDICATOR */
+        .phase-bar {
+            display: flex; justify-content: space-between; margin-bottom: 15px; background: #f0f0f0; border-radius: 50px; padding: 5px;
+        }
+        .phase-step {
+            flex: 1; text-align: center; padding: 8px; border-radius: 50px; font-size: 0.9rem; color: #aaa; font-weight: bold; transition: 0.3s;
+        }
+        .phase-step.active { background: var(--accent); color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        .question-header { font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; color: #34495e; min-height: 50px;}
+
+        /* ANTWOORDEN GRID */
+        .options-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; flex: 1; 
+            overflow-y: auto; margin-bottom: 10px;
+        }
+        
+        .option-box {
+            background: #f8f9fa; border: 3px dashed #ccc; border-radius: 12px; padding: 10px;
+            display: flex; flex-direction: column; transition: 0.2s; position: relative; cursor: pointer;
+        }
+
+        /* Visual States per Phase */
+        /* Phase 1: Selectable */
+        .phase-1 .option-box:hover { border-color: #3498db; background: #eaf2f8; transform: scale(1.01); }
+        
+        /* Phase 2: Locked (cannot select new answer, only drop) */
+        .phase-2 .option-box { cursor: default; border-color: #ddd; } 
+        .phase-2 .option-box.drag-over { background: #e8f4fc; border-color: #3498db; }
+        
+        /* Phase 3: Reveal */
+        .phase-3 .option-box.correct-answer { background: #eafaf1; border: 3px solid #27ae60; box-shadow: 0 0 15px rgba(39, 174, 96, 0.3); }
+        .phase-3 .option-box:not(.correct-answer) { opacity: 0.5; }
+
+        .option-text { font-size: 1rem; margin-bottom: 10px; pointer-events: none; line-height: 1.4; } 
+        
+        .pawn-drop-area {
+            flex: 1; display: flex; flex-wrap: wrap; align-content: flex-end; gap: 5px; min-height: 40px;
+            background: rgba(0,0,0,0.02); border-radius: 8px; padding: 5px;
+        }
+
+        /* PIONNEN BANK */
+        .bank-area {
+            background: #eee; border-radius: 15px; padding: 15px; min-height: 80px;
+            display: flex; align-items: center; justify-content: center; gap: 15px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); opacity: 0; transition: opacity 0.5s; pointer-events: none;
+        }
+        .bank-area.visible { opacity: 1; pointer-events: all; }
+
+        .pawn {
+            width: 40px; height: 40px; border-radius: 50%; 
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 0.8rem; cursor: grab;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 2px solid white;
+            user-select: none; z-index: 100;
+        }
+        .pawn:active { cursor: grabbing; transform: scale(1.1); }
+        
+        /* BUTTONS */
+        .action-area { display: flex; justify-content: center; align-items: center; margin-top: 10px; min-height: 50px; }
+        .main-action-btn {
+            background: #2c3e50; color: white; border: none; padding: 12px 40px; border-radius: 50px;
+            font-weight: bold; cursor: pointer; font-size: 1.1rem; display: none;
+        }
+        .main-action-btn:hover { background: #34495e; }
+        .main-action-btn.green { background: #27ae60; }
+
+        /* WINNER SCREEN */
+        .winner-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+            background: rgba(255,255,255,0.95); z-index: 20; display: none;
+        }
+        .winner-name { font-size: 3rem; color: #e74c3c; font-weight: 800; animation: popIn 0.5s; }
+        @keyframes popIn { from {transform: scale(0);} to {transform: scale(1);} }
+
+        /* RIGHT PANEL */
+        .score-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .score-badge { font-weight: bold; color: #e74c3c; }
+
+        /* MODALS */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8);
+            z-index: 100; display: flex; justify-content: center; align-items: center;
+            display: none;
+        }
+        .modal-content { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 500px; max-height: 90vh; overflow-y: auto;}
+        
+        /* SPECIFIC SETUP MODAL */
+        #setupOverlay { display: flex; } /* Default open */
+
+        /* ADMIN STATS CSS */
+        .admin-modal-content { width: 800px; text-align: left; }
+        .stat-player-row { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .stat-player-name { font-size: 1.1rem; font-weight: bold; margin-bottom: 5px; color: var(--accent); }
+        .stat-bars-container { display: flex; flex-direction: column; gap: 4px; }
+        .stat-bar-row { display: flex; align-items: center; font-size: 0.8rem; }
+        .stat-label { width: 60px; font-weight: bold; }
+        .stat-track { flex: 1; background: #f0f0f0; height: 12px; border-radius: 6px; overflow: hidden; margin: 0 10px; }
+        .stat-fill { height: 100%; transition: width 0.3s; }
+        .stat-val { width: 20px; text-align: right; color: #777; }
+        
+        .close-btn { 
+            background: #e74c3c; color: white; padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; 
+            font-size: 0.9rem; font-weight: bold;
+        }
+        .close-btn:hover { background: #c0392b; }
+
+        input[type="text"] { width: 80%; padding: 12px; margin: 20px 0; border: 2px solid #ddd; border-radius: 8px; text-align: center; }
+
+        /* MODERATOR */
+        .code-badge { font-size: 0.7rem; color: white; padding: 2px 5px; border-radius: 4px; display: none; margin-left: 5px; float: right;}
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .layout { flex-direction: column; overflow-y: auto; height: auto; }
+            .col-left, .col-right { flex: none; width: 100%; }
+            .game-card { min-height: 500px; }
+            .options-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="setupOverlay" class="modal-overlay">
+        <div class="modal-content">
+            <h1>Kleur Bekennen</h1>
+            <p style="color:#666;">Vul de namen van de spelers in (komma gescheiden):</p>
+            <input type="text" id="namesInput" value="Mark, Lisa, Tom, Sanne" placeholder="Namen...">
+            <br>
+            <button class="spin-btn" onclick="initGame()">Start Spel</button>
+        </div>
+    </div>
+
+    <div id="adminOverlay" class="modal-overlay">
+        <div class="modal-content admin-modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; border-bottom:1px solid #eee; padding-bottom:10px;">
+                <h2 style="margin:0;">Spelersprofielen</h2>
+                <div style="display:flex; gap:10px;">
+                    <button class="main-action-btn green" style="display:block; font-size:0.9rem; padding: 8px 20px;" onclick="exportResults()">💾 Opslaan (CSV)</button>
+                    <button class="close-btn" style="margin:0; float:none;" onclick="toggleAdmin()">Sluiten</button>
+                </div>
+            </div>
+            
+            <div id="adminStatsContent"></div>
+        </div>
+    </div>
+
+    <header>
+        <h1>Kleur Bekennen <small style="color:#777; font-size:0.7rem;">| Vrienden & Familie</small></h1>
+        <div class="header-controls">
+            <div class="header-link" onclick="toggleFullScreen()">⛶ Fullscreen</div>
+            <div class="header-link" onclick="toggleSecret()">Moderator</div>
+            <div class="header-link" onclick="toggleAdmin()">Stats</div>
+        </div>
+    </header>
+
+    <div class="layout">
+        <div class="col-left">
+            <div class="wheel-container">
+                <div class="pointer"></div>
+                <canvas id="wheelCanvas" width="500" height="500"></canvas>
+            </div>
+            <button id="spinBtn" class="spin-btn" onclick="spin()">DRAAI!</button>
+        </div>
+
+        <div class="col-center">
+            <div id="welcomeState" style="text-align: center; color: #999; margin-top: 100px;">
+                <h2>Klaar voor de waarheid?</h2>
+                <p>Draai aan het rad om te beginnen.</p>
+                <p style="font-size:0.9rem; margin-top:20px;">ℹ️ De actieve speler kiest stiekem een antwoord.<br>De rest zet in: hoe goed kennen jullie hem/haar?</p>
+            </div>
+
+            <div id="winnerDisplay" class="winner-screen">
+                <div style="font-size:1.5rem;">De beurt is aan:</div>
+                <div class="winner-name" id="winnerText">NAAM</div>
+            </div>
+
+            <div id="gameBoard" class="game-card">
+                <div class="phase-bar">
+                    <div id="step1" class="phase-step active">1. Kiezen</div>
+                    <div id="step2" class="phase-step">2. Inzetten</div>
+                    <div id="step3" class="phase-step">3. Onthulling</div>
+                </div>
+
+                <div class="question-header" id="qText">Vraag...</div>
+                
+                <div class="options-grid" id="optionsGrid"></div>
+
+                <div class="action-area">
+                    <div id="instructionText" style="color:#555; font-style:italic;">Moderator: Klik op het antwoord van de speler.</div>
+                    <button id="revealBtn" class="main-action-btn green" onclick="finalizeRound()">ONTHUL & PUNTEN</button>
+                </div>
+
+                <h4 style="margin: 10px 0 5px 0; color:#555;">Sleep de pionnen:</h4>
+                <div class="bank-area" id="bankArea" ondragover="allowDrop(event)" ondrop="drop(event)">
+                    </div>
+            </div>
+        </div>
+
+        <div class="col-right">
+            <h3>Scorebord</h3>
+            <div id="scoreContainer"></div>
+        </div>
+    </div>
+
+<script>
+        // CONFIG
+        const wheelColors = ["#9b59b6", "#f1c40f", "#e67e22", "#e74c3c", "#3498db", "#2ecc71"];
+        const mdColors = { 'Paars': '#8e44ad', 'Geel': '#f1c40f', 'Oranje': '#e67e22', 'Rood': '#c0392b', 'Blauw': '#2980b9', 'Groen': '#27ae60' };
+        const mdOrder = ['Paars', 'Geel', 'Oranje', 'Rood', 'Blauw', 'Groen'];
+        const playerColors = ["#34495e", "#16a085", "#2c3e50", "#7f8c8d", "#8e44ad", "#2980b9", "#d35400", "#27ae60"];
+
+        // STATE
+        let names = [];
+        let players = {};
+        let currentPlayer = "";
+        let isSpinning = false;
+        let currentPhase = 0; 
+        let lockedAnswerColor = null;
+        let showCodes = false;
+        let currentRotation = 0; 
+        let questionPool = []; 
+
+        // --- ENORME VRAGEN DATABASE (Vrienden & Familie focus) ---
+        const questions = [
+            // SOCIALE SCENARIO'S
+            { q: "We organiseren een potluck diner. Wat neem jij mee?", opts: [ {t:"Ik regel de tafelindeling en drankjes.", c:"Blauw"}, {t:"Mijn beroemde familierecept.", c:"Paars"}, {t:"Ik praat vooral, eten is bijzaak.", c:"Groen"}, {t:"Snel iets uit de supermarkt, als we maar eten.", c:"Rood"}, {t:"Diep gesprek over de ingrediënten.", c:"Geel"}, {t:"Een spectaculaire taart (showstopper).", c:"Oranje"} ] },
+            { q: "Je komt veel te laat op een afspraak. Waarom?", opts: [ {t:"Ik was er 5 min te vroeg, maar wachtte buiten.", c:"Blauw"}, {t:"Ik kwam een bekende tegen en bleef kletsen.", c:"Groen"}, {t:"Nog snel even één dingetje afmaken.", c:"Rood"}, {t:"Ik zat te dagdromen en miste de tijd.", c:"Geel"}, {t:"Ik twijfelde te lang over mijn outfit.", c:"Oranje"}, {t:"Het thuisfront had me nodig.", c:"Paars"} ] },
+            { q: "We gaan een weekend weg. Wat is essentieel?", opts: [ {t:"Een strakke planning en paklijst.", c:"Blauw"}, {t:"Actie! Mountainbiken of klimmen.", c:"Rood"}, {t:"Gezelligheid, kampvuur & sfeer.", c:"Groen"}, {t:"Luxe hotel & Comfort.", c:"Oranje"}, {t:"Cultuur & Historie ontdekken.", c:"Geel"}, {t:"Naar dezelfde plek als vroeger.", c:"Paars"} ] },
+            { q: "Cadeau voor een goede vriend(in). Wat koop je?", opts: [ {t:"Iets van hun verlanglijst (veilig).", c:"Blauw"}, {t:"Een gezellige belevenis samen.", c:"Groen"}, {t:"Iets leerzaams of unieks.", c:"Geel"}, {t:"Iets duurs en indrukwekkends.", c:"Oranje"}, {t:"Iets met emotionele waarde van vroeger.", c:"Paars"}, {t:"Snel iets leuks (last minute).", c:"Rood"} ] },
+            { q: "Spelletjesavond! Wat is jouw stijl?", opts: [ {t:"Winnen. Anders is er niks aan.", c:"Rood"}, {t:"Eerst de regels goed lezen en uitleggen.", c:"Blauw"}, {t:"Gezelligheid is belangrijker dan winnen.", c:"Groen"}, {t:"Strategisch & complex (schaken/Risk).", c:"Geel"}, {t:"Het spel wat we al jaren spelen.", c:"Paars"}, {t:"Bluffen, show & hard lachen.", c:"Oranje"} ] },
+            { q: "Er is ruzie in de groep. Jij...", opts: [ {t:"Wilt het nu uitpraten en oplossen.", c:"Rood"}, {t:"Zet de feiten op een rij: wie heeft gelijk?", c:"Blauw"}, {t:"Wilt geen ruzie, en probeert te lijmen.", c:"Groen"}, {t:"Trekt je terug om te analyseren wat er gebeurt.", c:"Geel"}, {t:"Maakt een grapje om de lucht te klaren.", c:"Oranje"}, {t:"Bent diep gekwetst en zwijgt.", c:"Paars"} ] },
+            
+            // HYPOTHETISCH & DILEMMA
+            { q: "Je wint 10 miljoen euro. Wat doe je als eerste?", opts: [ {t:"Investeren met hoog rendement.", c:"Rood"}, {t:"Naar de notaris voor een waterdicht plan.", c:"Blauw"}, {t:"Een groot feest geven voor iedereen.", c:"Groen"}, {t:"Bestuderen hoe ik dit kan laten groeien.", c:"Geel"}, {t:"Een villa en dikke sportauto kopen.", c:"Oranje"}, {t:"Mijn familie veiligstellen voor altijd.", c:"Paars"} ] },
+            { q: "Zombie Apocalypse! Wat is jouw rol?", opts: [ {t:"De leider. Ik hak de knopen door.", c:"Rood"}, {t:"De bevoorrading. Ik regel het rantsoen.", c:"Blauw"}, {t:"De lijmer. Ik houd de groep bij elkaar.", c:"Groen"}, {t:"De vinder. Ik zoek naar een vaccin.", c:"Geel"}, {t:"De held. Ik offer me op in stijl.", c:"Oranje"}, {t:"De beschermer. Niemand komt aan mijn familie.", c:"Paars"} ] },
+            { q: "Je ziet een grote rode knop met 'NIET DRUKKEN'. Jij...", opts: [ {t:"Drukt erop! Ik moet weten wat er gebeurt.", c:"Rood"}, {t:"Zoekt naar de handleiding.", c:"Blauw"}, {t:"Vraagt de groep wat we moeten doen.", c:"Groen"}, {t:"Volgt de bedrading om te zien wat het doet.", c:"Geel"}, {t:"Doet alsof je weet waar hij voor is.", c:"Oranje"}, {t:"Blijft eraf. Regels zijn regels.", c:"Paars"} ] },
+            { q: "Je zit vast in een lift. Jij...", opts: [ {t:"Bonkt op de deur en schreeuwt.", c:"Rood"}, {t:"Checkt of er luchttoevoer is en wacht rustig.", c:"Blauw"}, {t:"Stelt de andere mensen gerust.", c:"Groen"}, {t:"Berekent hoe lang de zuurstof meegaat.", c:"Geel"}, {t:"Maakt een selfie: #stuck.", c:"Oranje"}, {t:"Hoopt dat we snel gered worden (bang).", c:"Paars"} ] },
+            { q: "Welke superkracht wil je?", opts: [ {t:"Onmenselijke kracht en snelheid.", c:"Rood"}, {t:"De tijd kunnen stilzetten (orde scheppen).", c:"Blauw"}, {t:"Gedachten kunnen lezen (empathie).", c:"Groen"}, {t:"Alles weten (alwetendheid).", c:"Geel"}, {t:"Vliegen (iedereen ziet me).", c:"Oranje"}, {t:"Onsterfelijkheid (er altijd zijn).", c:"Paars"} ] },
+
+            // DAGELIJKS LEVEN
+            { q: "Je moet een IKEA kast in elkaar zetten.", opts: [ {t:"Ik begin gewoon, ik zie wel.", c:"Rood"}, {t:"Eerst onderdelen tellen, dan stap 1.", c:"Blauw"}, {t:"Samen doen, dat is gezellig!", c:"Groen"}, {t:"Ik bedenk een betere constructie.", c:"Geel"}, {t:"Ik laat het iemand anders doen.", c:"Oranje"}, {t:"Ik gebruik mijn eigen vertrouwde gereedschap.", c:"Paars"} ] },
+            { q: "Je staat in de file. Wat doe je?", opts: [ {t:"Wisselt steeds van baan (schiet op!).", c:"Rood"}, {t:"Luistert verkeersinformatie.", c:"Blauw"}, {t:"Belt iemand om bij te kletsen.", c:"Groen"}, {t:"Bedenkt een oplossing voor het fileprobleem.", c:"Geel"}, {t:"Zorgt dat mensen naar mijn auto kijken.", c:"Oranje"}, {t:"Accepteert het, het is zoals het is.", c:"Paars"} ] },
+            { q: "De ober knoeit wijn over je kleren.", opts: [ {t:"Ik eis dat de stomerij betaald wordt.", c:"Rood"}, {t:"Ik vraag om een doekje en water (praktisch).", c:"Blauw"}, {t:"Kan gebeuren, voel je niet schuldig.", c:"Groen"}, {t:"Ik vraag me af hoe dit natuurkundig kon gebeuren.", c:"Geel"}, {t:"Ik maak een scène (iedereen kijkt).", c:"Oranje"}, {t:"Ik zeg niets, om hem niet te kwetsen.", c:"Paars"} ] },
+            { q: "Je koopt een nieuwe telefoon. Waarom deze?", opts: [ {t:"De snelste processor.", c:"Rood"}, {t:"Beste prijs/kwaliteit verhouding.", c:"Blauw"}, {t:"Al mijn vrienden hebben deze.", c:"Groen"}, {t:"Meest innovatieve tech.", c:"Geel"}, {t:"Het nieuwste model (status).", c:"Oranje"}, {t:"Het merk dat ik altijd heb.", c:"Paars"} ] },
+            { q: "Koken voor een groep. Wat maak je?", opts: [ {t:"Wokken. Snel, heet en veel.", c:"Rood"}, {t:"Recept precies volgen (weegschaal erbij).", c:"Blauw"}, {t:"Tapas/Buffet (voor ieder wat wils).", c:"Groen"}, {t:"Experimentele fusion keuken.", c:"Geel"}, {t:"Een 5-gangen diner met mooie opmaak.", c:"Oranje"}, {t:"Grootmoeders stoofpot.", c:"Paars"} ] },
+
+            // KARAKTER & VOORKEUREN
+            { q: "Grootste irritatie?", opts: [ {t:"Traagheid / getreuzel.", c:"Rood"}, {t:"Chaos / afspraken niet nakomen.", c:"Blauw"}, {t:"Arrogantie / ruzie.", c:"Groen"}, {t:"Domheid / oppervlakkigheid.", c:"Geel"}, {t:"Gezichtsverlies / falen.", c:"Oranje"}, {t:"Ontrouw / onveiligheid.", c:"Paars"} ] },
+            { q: "Favoriete filmgenre?", opts: [ {t:"Actie / Thriller.", c:"Rood"}, {t:"Documentaire / True Crime.", c:"Blauw"}, {t:"Romantische komedie.", c:"Groen"}, {t:"Sci-fi / Mindfuck.", c:"Geel"}, {t:"Blockbuster / Hollywood.", c:"Oranje"}, {t:"Klassieker / Familiefilm.", c:"Paars"} ] },
+            { q: "Hond of Kat?", opts: [ {t:"Hond (die luistert tenminste).", c:"Blauw"}, {t:"Grote waakhond (kracht).", c:"Rood"}, {t:"Asielhondje (zorgen voor).", c:"Groen"}, {t:"Kat (eigenzinnig/slim).", c:"Geel"}, {t:"Raskat/Hond met stamboom.", c:"Oranje"}, {t:"De hond die we vroeger ook hadden.", c:"Paars"} ] },
+            { q: "Je auto gaat stuk langs de weg. En nu?", opts: [ {t:"Ik bel meteen de wegenwacht (actie).", c:"Rood"}, {t:"Ik heb mijn polisnummer bij de hand.", c:"Blauw"}, {t:"Ik stel de passagiers gerust.", c:"Groen"}, {t:"Ik kijk onder de motorkap (hoe werkt dit?).", c:"Geel"}, {t:"Ik baal dat ik in een lelijke leenauto moet.", c:"Oranje"}, {t:"Ik bel een vriend/familielid om te helpen.", c:"Paars"} ] },
+            { q: "Een vriend vraagt geld te leen.", opts: [ {t:"Nee, principes zijn principes.", c:"Blauw"}, {t:"Ja, maar wanneer krijg ik het terug?", c:"Rood"}, {t:"Natuurlijk, als ik kan helpen.", c:"Groen"}, {t:"Waarvoor is het precies? (Risicoanalyse).", c:"Geel"}, {t:"Tuurlijk, no problem (laat zien dat ik heb).", c:"Oranje"}, {t:"Voor jou altijd (loyaliteit).", c:"Paars"} ] },
+            
+            // NIEUWE SET - VAKANTIE & VRIJE TIJD
+            { q: "Ideale vakantie?", opts: [ {t:"Backpacken zonder plan.", c:"Rood"}, {t:"Georganiseerde rondreis.", c:"Blauw"}, {t:"Vrijwilligerswerk doen.", c:"Groen"}, {t:"Stedentrip naar onbekende parels.", c:"Geel"}, {t:"Ibiza, VIP tafel.", c:"Oranje"}, {t:"Camping in Frankrijk, elk jaar.", c:"Paars"} ] },
+            { q: "Je team wint een prijs!", opts: [ {t:"We are the champions!", c:"Oranje"}, {t:"Mooi, op naar het volgende doel.", c:"Rood"}, {t:"Dit staat goed op de statistieken.", c:"Blauw"}, {t:"Laten we dit samen vieren.", c:"Groen"}, {t:"Interessant, wat was de succesfactor?", c:"Geel"}, {t:"Dit schept een band voor het leven.", c:"Paars"} ] },
+            { q: "Op een feestje sta jij...", opts: [ {t:"Bij de bar, rondjes te geven.", c:"Rood"}, {t:"Te kijken of er genoeg hapjes zijn.", c:"Blauw"}, {t:"In een diep gesprek in de hoek.", c:"Groen"}, {t:"De muziek te analyseren.", c:"Geel"}, {t:"In het middelpunt op de dansvloer.", c:"Oranje"}, {t:"Bij de mensen die ik al ken.", c:"Paars"} ] },
+            { q: "Verhuizen. Wat is de grootste stress?", opts: [ {t:"Het sjouwen (fysiek).", c:"Rood"}, {t:"De administratie en contracten.", c:"Blauw"}, {t:"Afscheid nemen van de buren.", c:"Groen"}, {t:"Of dit wel de slimste keuze was.", c:"Geel"}, {t:"Of het huis wel indrukwekkend genoeg is.", c:"Oranje"}, {t:"Mijn vertrouwde plek achterlaten.", c:"Paars"} ] },
+            { q: "Je ziet iemand spieken bij een examen.", opts: [ {t:"Ik meld het direct.", c:"Blauw"}, {t:"Slim gedaan, als hij er maar mee wegkomt.", c:"Rood"}, {t:"Ik zeg niks, zielig voor hem.", c:"Groen"}, {t:"Ik vraag me af waarom hij niet geleerd heeft.", c:"Geel"}, {t:"Zolang ik maar een hoger cijfer haal.", c:"Oranje"}, {t:"Dat hoort niet, dat is oneerlijk.", c:"Paars"} ] },
+            
+            // EXTRA FUN
+            { q: "Karaoke avond! Wat zing jij?", opts: [ {t:"Ik pak direct de microfoon!", c:"Rood"}, {t:"Ik wacht tot ik aan de beurt ben.", c:"Blauw"}, {t:"Een duet, samen sta je sterker.", c:"Groen"}, {t:"Een onbekend nummer met diepe tekst.", c:"Geel"}, {t:"Het moeilijkste nummer (Whitney Houston).", c:"Oranje"}, {t:"Een klassieker die iedereen kent.", c:"Paars"} ] },
+            { q: "Je krijgt onverwachts bezoek.", opts: [ {t:"Gezellig, kom binnen!", c:"Groen"}, {t:"Ik doe niet open, ik had andere plannen.", c:"Rood"}, {t:"Het huis is niet aan kant, stress!", c:"Blauw"}, {t:"Waarom komen ze nu? (Analyse).", c:"Geel"}, {t:"Ik ontvang ze als een koning(in).", c:"Oranje"}, {t:"Leuk, net als vroeger.", c:"Paars"} ] },
+            { q: "Welk dier zou je zijn?", opts: [ {t:"Leeuw (De koning).", c:"Rood"}, {t:"Mier (Hardwerkend/structuur).", c:"Blauw"}, {t:"Dolfijn (Sociaal/speels).", c:"Groen"}, {t:"Uil (Wijs/observerend).", c:"Geel"}, {t:"Pauw (Mooi/trots).", c:"Oranje"}, {t:"Olifant (Familiemens/geheugen).", c:"Paars"} ] },
+            { q: "Je vindt een portemonnee op straat.", opts: [ {t:"Ik kijk hoeveel geld erin zit.", c:"Rood"}, {t:"Ik breng hem naar de politie.", c:"Blauw"}, {t:"Ik zoek de eigenaar om hem terug te geven.", c:"Groen"}, {t:"Ik vraag me af hoe iemand die kan verliezen.", c:"Geel"}, {t:"Ik hoop op een beloning.", c:"Oranje"}, {t:"Ik zou willen dat iemand dat voor mij deed.", c:"Paars"} ] },
+            { q: "Je bent getuige van een misdaad.", opts: [ {t:"Ik ren er achteraan!", c:"Rood"}, {t:"Ik onthoud het kenteken en bel 112.", c:"Blauw"}, {t:"Ik troost het slachtoffer.", c:"Groen"}, {t:"Ik probeer het patroon te begrijpen.", c:"Geel"}, {t:"Ik geef interviews aan de pers.", c:"Oranje"}, {t:"Ik zorg dat mijn familie veilig is.", c:"Paars"} ] },
+            { q: "Ideale avondeten?", opts: [ {t:"Biefstuk met friet.", c:"Rood"}, {t:"AVG'tje (Aardappel, Vlees, Groente).", c:"Blauw"}, {t:"Gezellig fonduen/gourmetten.", c:"Groen"}, {t:"Ingewikkeld recept proberen.", c:"Geel"}, {t:"Uit eten in een sterrentent.", c:"Oranje"}, {t:"Pannenkoeken of stamppot.", c:"Paars"} ] },
+            { q: "Je moet een toespraak houden.", opts: [ {t:"Kort en krachtig.", c:"Rood"}, {t:"Goed voorbereid op papier.", c:"Blauw"}, {t:"Vanuit het hart.", c:"Groen"}, {t:"Intellectueel uitdagend.", c:"Geel"}, {t:"Met veel humor en flair.", c:"Oranje"}, {t:"Over onze gezamenlijke geschiedenis.", c:"Paars"} ] },
+            
+            // LAATSTE TOEVOEGINGEN
+            { q: "Sporten. Waarom doe je het?", opts: [ {t:"Om te winnen / records breken.", c:"Rood"}, {t:"Omdat het moet / schema volgen.", c:"Blauw"}, {t:"Voor de gezelligheid (team).", c:"Groen"}, {t:"Om mijn techniek te perfectioneren.", c:"Geel"}, {t:"Om er goed uit te zien.", c:"Oranje"}, {t:"Omdat we dit al jaren doen op dinsdag.", c:"Paars"} ] },
+            { q: "Jouw droomhuis?", opts: [ {t:"Modern penthouse in de stad.", c:"Oranje"}, {t:"Praktisch en energiezuinig.", c:"Blauw"}, {t:"Groot landhuis voor familiefeesten.", c:"Groen"}, {t:"Architectonisch meesterwerk.", c:"Geel"}, {t:"Oud boerderijtje met geschiedenis.", c:"Paars"}, {t:"Huis met grote gym en zwembad.", c:"Rood"} ] },
+            { q: "Je laptop crasht en je hebt niets opgeslagen.", opts: [ {t:"#@&%!!! (Slaat op tafel).", c:"Rood"}, {t:"Ik heb gisteren nog een backup gemaakt.", c:"Blauw"}, {t:"Ik bel iemand om even uit te huilen.", c:"Groen"}, {t:"Ik probeer de data te recoveren.", c:"Geel"}, {t:"Tijd voor een betere, duurdere laptop.", c:"Oranje"}, {t:"Ik had het toch beter met pen en papier kunnen doen.", c:"Paars"} ] },
+            { q: "Als je een boek schrijft, waar gaat het over?", opts: [ {t:"Mijn weg naar succes.", c:"Rood"}, {t:"Hoe je je leven organiseert.", c:"Blauw"}, {t:"Een ontroerend levensverhaal.", c:"Groen"}, {t:"De theorie van alles.", c:"Geel"}, {t:"Mijn autobiografie (bestseller).", c:"Oranje"}, {t:"De geschiedenis van mijn familie.", c:"Paars"} ] },
+            { q: "Je wint een reis, maar je mag maar 1 iemand meenemen.", opts: [ {t:"Degene met wie ik het meeste lol heb.", c:"Rood"}, {t:"Iemand die goed kaart kan lezen.", c:"Blauw"}, {t:"Moeilijk kiezen, ik wil niemand kwetsen.", c:"Groen"}, {t:"Iemand met wie ik goed kan praten.", c:"Geel"}, {t:"Iemand die goed op de foto staat.", c:"Oranje"}, {t:"Mijn partner/beste vriend van vroeger.", c:"Paars"} ] }
+        ];
+
+        // INIT
+        function initGame() {
+            const val = document.getElementById('namesInput').value;
+            if(!val.trim()) return alert("Vul namen in!");
+            names = val.split(',').map(n => n.trim()).filter(n=>n);
+            names.forEach(n => {
+                players[n] = { score: 0, profile: { 'Paars':0, 'Geel':0, 'Oranje':0, 'Rood':0, 'Blauw':0, 'Groen':0 } };
+            });
+            document.getElementById('setupOverlay').style.display = 'none';
+            drawWheel(currentRotation);
+            updateScores();
+        }
+
+        // WHEEL
+        function drawWheel(rot) {
+            const canvas = document.getElementById('wheelCanvas');
+            const ctx = canvas.getContext('2d');
+            const arc = 2 * Math.PI / names.length;
+            const r = canvas.width / 2;
+            
+            ctx.setTransform(1,0,0,1,0,0); 
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            
+            ctx.translate(r,r); 
+            ctx.rotate(rot); 
+            
+            names.forEach((n,i) => {
+                const a = i*arc;
+                ctx.beginPath(); ctx.fillStyle = wheelColors[i%wheelColors.length];
+                ctx.moveTo(0,0); ctx.arc(0,0,r,a,a+arc); ctx.lineTo(0,0); ctx.fill(); ctx.stroke();
+                ctx.save(); 
+                ctx.rotate(a+arc/2); 
+                ctx.textAlign="right"; ctx.fillStyle="white"; 
+                ctx.font="bold 24px Arial"; ctx.fillText(n, r-30, 10); 
+                ctx.restore();
+            });
+        }
+
+        function spin() {
+            if(isSpinning) return;
+            isSpinning = true;
+            document.getElementById('welcomeState').style.display='none';
+            document.getElementById('gameBoard').style.display='none';
+            document.getElementById('winnerDisplay').style.display='none';
+            document.getElementById('spinBtn').disabled = true;
+
+            const idx = Math.floor(Math.random()*names.length);
+            currentPlayer = names[idx];
+            
+            const arc = 2*Math.PI/names.length;
+            const segmentAngle = (idx * arc) + (arc/2);
+            let target = -Math.PI/2 - segmentAngle;
+
+            while(target > currentRotation) {
+                target -= (2 * Math.PI);
+            }
+            const extraSpins = 5 + Math.floor(Math.random() * 3);
+            target -= (extraSpins * 2 * Math.PI);
+
+            const startRot = currentRotation;
+            const startT = performance.now();
+            const duration = 4000;
+
+            function animate(now) {
+                const p = Math.min((now-startT)/duration, 1);
+                const e = 1 - Math.pow(1-p, 3); 
+                const cur = startRot + (target-startRot)*e;
+                drawWheel(cur);
+                
+                if(p<1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    currentRotation = target; 
+                    isSpinning=false;
+                    document.getElementById('spinBtn').disabled = false;
+                    showWinner();
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        function showWinner() {
+            document.getElementById('winnerText').innerText = currentPlayer;
+            document.getElementById('winnerDisplay').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('winnerDisplay').style.display = 'none';
+                startPhase1();
+            }, 2000);
+        }
+
+        function getUniqueQuestion() {
+            if(questionPool.length === 0) {
+                questionPool = Array.from(Array(questions.length).keys());
+            }
+            const randomIndex = Math.floor(Math.random() * questionPool.length);
+            const questionIndex = questionPool[randomIndex];
+            questionPool.splice(randomIndex, 1);
+            return questions[questionIndex];
+        }
+
+        // --- PHASE 1: PLAYER CHOOSES ---
+        function startPhase1() {
+            currentPhase = 1;
+            lockedAnswerColor = null;
+            updatePhaseUI();
+            
+            const q = getUniqueQuestion();
+
+            document.getElementById('qText').innerHTML = `<b>${currentPlayer}</b>, ${q.q}`;
+            document.getElementById('instructionText').innerHTML = `<b>${currentPlayer}</b> kiest nu! <br>(Moderator: Klik het antwoord aan)`;
+            document.getElementById('instructionText').style.display = 'block';
+            document.getElementById('revealBtn').style.display = 'none';
+
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = "";
+            const bank = document.getElementById('bankArea');
+            bank.innerHTML = "";
+            bank.classList.remove('visible'); 
+
+            // Hussel de antwoorden
+            const opts = [...q.opts].sort(()=>Math.random()-0.5);
+            opts.forEach((opt, i) => {
+                const box = document.createElement('div');
+                box.className = 'option-box';
+                box.dataset.color = opt.c;
+                
+                box.onclick = () => handlePhase1Click(opt.c);
+                box.ondragover = allowDrop;
+                box.ondragleave = dragLeave;
+                box.ondrop = drop;
+
+                box.innerHTML = `<div class="option-text">${opt.t} <span class="code-badge" style="background:${mdColors[opt.c]}">${opt.c}</span></div><div class="pawn-drop-area"></div>`;
+                grid.appendChild(box);
+            });
+
+            document.getElementById('gameBoard').style.display = 'flex';
+            document.getElementById('gameBoard').className = 'game-card phase-1';
+            updateSecrets();
+        }
+
+        function handlePhase1Click(color) {
+            if(currentPhase !== 1) return;
+            lockedAnswerColor = color;
+            // Korte visual feedback
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed'; overlay.style.top=0; overlay.style.left=0; overlay.style.width='100%'; overlay.style.height='100%';
+            overlay.style.background='rgba(0,0,0,0.5)'; overlay.style.color='white'; overlay.style.display='flex'; overlay.style.justifyContent='center'; overlay.style.alignItems='center';
+            overlay.style.zIndex = 200; overlay.innerHTML = '<h1>🔒 Antwoord Vergrendeld!</h1>';
+            document.body.appendChild(overlay);
+            setTimeout(() => { document.body.removeChild(overlay); startPhase2(); }, 1000);
+        }
+
+        // --- PHASE 2: BETTING ---
+        function startPhase2() {
+            currentPhase = 2;
+            updatePhaseUI();
+            document.getElementById('gameBoard').className = 'game-card phase-2';
+            document.getElementById('instructionText').innerText = "Sleep de pionnen naar het verwachte antwoord!";
+            document.getElementById('revealBtn').style.display = 'block';
+            
+            const bank = document.getElementById('bankArea');
+            bank.innerHTML = "";
+            names.forEach((n, idx) => {
+                if(n !== currentPlayer) {
+                    const pawn = document.createElement('div');
+                    pawn.className = 'pawn';
+                    pawn.draggable = true;
+                    pawn.ondragstart = dragStart;
+                    pawn.id = `pawn-${n}`;
+                    pawn.dataset.player = n;
+                    pawn.innerText = n.substring(0,2).toUpperCase();
+                    pawn.style.background = playerColors[idx % playerColors.length];
+                    bank.appendChild(pawn);
+                }
+            });
+            bank.classList.add('visible'); 
+        }
+
+        // --- PHASE 3: REVEAL ---
+        function finalizeRound() {
+            if(currentPhase !== 2) return;
+            
+            // Check of alle pionnen op zijn (optioneel, maar leuk)
+            const remainingPawns = document.getElementById('bankArea').children.length;
+            if(remainingPawns > 0) {
+                if(!confirm("Nog niet iedereen heeft ingezet! Toch onthullen?")) return;
+            }
+
+            currentPhase = 3;
+            updatePhaseUI();
+            document.getElementById('gameBoard').className = 'game-card phase-3';
+            document.getElementById('instructionText').style.display = 'none';
+            document.getElementById('revealBtn').style.display = 'none';
+
+            const boxes = document.querySelectorAll('.option-box');
+            let correctBox = null;
+            boxes.forEach(box => {
+                if(box.dataset.color === lockedAnswerColor) {
+                    box.classList.add('correct-answer');
+                    correctBox = box;
+                }
+            });
+
+            players[currentPlayer].profile[lockedAnswerColor]++; 
+            
+            const dropZone = correctBox.querySelector('.pawn-drop-area');
+            const pawns = dropZone.getElementsByClassName('pawn');
+            let winners = [];
+            for(let p of pawns) {
+                const pn = p.dataset.player;
+                players[pn].score++;
+                winners.push(pn);
+            }
+
+            setTimeout(() => {
+                let msg = `${currentPlayer} koos voor: ${lockedAnswerColor}!\n\n`;
+                if(winners.length > 0) {
+                    msg += `🎉 Punten voor: ${winners.join(', ')}`;
+                } else {
+                    msg += "😢 Niemand had het goed!";
+                }
+                alert(msg);
+                updateScores();
+            }, 500);
+        }
+
+        // --- ADMIN / PROFILES ---
+        function toggleAdmin() {
+            const overlay = document.getElementById('adminOverlay');
+            if(overlay.style.display === 'flex') {
+                overlay.style.display = 'none';
+            } else {
+                renderAdminStats();
+                overlay.style.display = 'flex';
+            }
+        }
+
+        function renderAdminStats() {
+            const container = document.getElementById('adminStatsContent');
+            container.innerHTML = '';
+            if(names.length === 0) {
+                container.innerHTML = "<p>Nog geen spelers actief.</p>";
+                return;
+            }
+            names.forEach(name => {
+                const p = players[name];
+                const prof = p.profile;
+                let maxVal = 0;
+                for(let k in prof) { if(prof[k] > maxVal) maxVal = prof[k]; }
+                if(maxVal === 0) maxVal = 1; 
+
+                let barsHtml = '';
+                mdOrder.forEach(color => {
+                    const val = prof[color];
+                    const perc = (val / maxVal) * 100;
+                    const hex = mdColors[color];
+                    
+                    barsHtml += `
+                        <div class="stat-bar-row">
+                            <div class="stat-label" style="color:${hex}">${color}</div>
+                            <div class="stat-track">
+                                <div class="stat-fill" style="width:${perc}%; background:${hex}"></div>
+                            </div>
+                            <div class="stat-val">${val}</div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="stat-player-row">
+                        <div class="stat-player-name">${name}</div>
+                        <div class="stat-bars-container">${barsHtml}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function exportResults() {
+            if (names.length === 0) return alert("Er zijn geen gegevens om op te slaan.");
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            let csvContent = "Naam,Totaal Score,Paars,Geel,Oranje,Rood,Blauw,Groen\n";
+            names.forEach(name => {
+                const p = players[name];
+                const prof = p.profile;
+                let row = [name,p.score,prof['Paars'],prof['Geel'],prof['Oranje'],prof['Rood'],prof['Blauw'],prof['Groen']].join(",");
+                csvContent += row + "\n";
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `KleurBekennen_Resultaten_${dateStr}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => alert(`Fout: ${err.message}`));
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        // UTILS
+        function updatePhaseUI() {
+            document.querySelectorAll('.phase-step').forEach((el, i) => el.classList.toggle('active', i+1 === currentPhase));
+        }
+        function dragStart(ev) { ev.dataTransfer.setData("text", ev.target.id); }
+        function allowDrop(ev) { 
+            if(currentPhase !== 2) return; 
+            ev.preventDefault(); 
+            const box = ev.target.closest('.option-box');
+            if(box) box.classList.add('drag-over');
+        }
+        function dragLeave(ev) { const box = ev.target.closest('.option-box'); if(box) box.classList.remove('drag-over'); }
+        function drop(ev) {
+            ev.preventDefault();
+            if(currentPhase !== 2) return;
+            const data = ev.dataTransfer.getData("text");
+            const pawn = document.getElementById(data);
+            const target = ev.target;
+            document.querySelectorAll('.option-box').forEach(b => b.classList.remove('drag-over'));
+            if(target.closest('.bank-area')) {
+                document.getElementById('bankArea').appendChild(pawn);
+            } else {
+                const box = target.closest('.option-box');
+                if(box) box.querySelector('.pawn-drop-area').appendChild(pawn);
+            }
+        }
+        function updateScores() {
+            const c = document.getElementById('scoreContainer');
+            c.innerHTML = "";
+            const sorted = names.slice().sort((a,b) => players[b].score - players[a].score);
+            sorted.forEach(n => {
+                c.innerHTML += `<div class="score-row"><span>${n}</span> <span class="score-badge">${players[n].score}</span></div>`;
+            });
+        }
+        function toggleSecret() { showCodes=!showCodes; updateSecrets(); }
+        function updateSecrets() { document.querySelectorAll('.code-badge').forEach(e => e.style.display = showCodes?'inline':'none'); }
+    </script>
+</body>
+</html>
