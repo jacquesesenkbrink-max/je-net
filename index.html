@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
@@ -121,7 +121,7 @@
         .greeting-box:hover { transform: scale(1.01); }
         
         .greeting-box:hover::after {
-            content: "Start Oefening →";
+            content: "Start Oefening â†’";
             position: absolute;
             top: -10px;
             right: 10px;
@@ -438,7 +438,8 @@
             // Categorie: Ontwikkeling / Werk
             { id: 20, cat: 'werk', name: "MD Profiel Anita", icon: "fa-fingerprint", url: "profiel blauw-groen2.html" },
             { id: 21, cat: 'werk', name: "MD Werk", icon: "fa-briefcase", url: "mdspotter - werk.html" },
-            { id: 22, cat: 'werk', name: "MD Privé", icon: "fa-home", url: "mdspotter - prive.html" },
+            { id: 22, cat: 'werk', name: "MD PrivÃ©", icon: "fa-home", url: "mdspotter - prive.html" },
+            { id: 23, cat: 'werk', name: "Fawning", icon: "fa-handshake", url: "fawning.html" },
 
             // Categorie: Sociaal / Spel
             { id: 30, cat: 'sociaal', name: "De Dialoog", icon: "fa-comments", url: "dedialoog v1.0.html" },
@@ -571,7 +572,7 @@
                 const temp = Math.round(data.current_weather.temperature);
                 const code = data.current_weather.weathercode;
                 
-                document.getElementById('weather-text').innerText = `${temp}°C`;
+                document.getElementById('weather-text').innerText = `${temp}Â°C`;
                 const iconElement = document.getElementById('weather-icon');
                 
                 iconElement.className = 'fas'; 
@@ -612,6 +613,9 @@
     </script>
 </body>
 </html>
+
+
+
 
 
 
