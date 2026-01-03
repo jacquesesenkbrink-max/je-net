@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Van Aanpassen naar Jezelf Zijn</title>
+    <style>
+        :root {
+            --primary: #88b09a; /* Saliegroen */
+            --primary-dark: #6e917d;
+            --accent: #e6c2bf; /* Oudroze */
+            --bg: #f9f7f5; /* Crème wit */
+            --text: #4a4a4a;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            color: var(--primary-dark);
+            font-weight: 300;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+
+        h2 {
+            color: var(--primary-dark);
+            font-size: 1.4rem;
+            margin-top: 30px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .intro {
+            text-align: center;
+            font-style: italic;
+            color: #777;
+            margin-bottom: 40px;
+        }
+
+        /* Sectie Stijlen */
+        .section-box {
+            background: #fafafa;
+            border-left: 5px solid var(--primary);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        /* Interactieve Checklist */
+        .checklist {
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .checkbox-item {
+            display: block;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .checkbox-item:hover {
+            transform: translateX(5px);
+        }
+
+        input[type="checkbox"] {
+            accent-color: var(--primary);
+            transform: scale(1.2);
+            margin-right: 10px;
+        }
+
+        .feedback-msg {
+            margin-top: 15px;
+            font-weight: bold;
+            color: var(--primary-dark);
+            min-height: 20px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        /* Accordeon Oefeningen */
+        details {
+            background: #fff;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        details[open] {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        summary {
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            list-style: none; /* Verbergt standaard pijl */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary::after {
+            content: '+';
+            font-size: 1.5rem;
+            font-weight: 300;
+        }
+
+        details[open] summary::after {
+            content: '-';
+        }
+
+        .details-content {
+            padding: 20px;
+            border: 1px solid var(--primary);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .tip-box {
+            background-color: #fff0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #aaa;
+            font-size: 0.8rem;
+        }
+
+        .heart {
+            color: var(--accent);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Lieve jij,</h1>
+    <p class="intro">Welkom bij een moment voor jezelf. Een moment om te begrijpen waarom je zo goed bent in zorgen voor anderen, en hoe je weer mag leren zorgen voor jezelf.</p>
+
+    <div class="section-box">
+        <h3>Wat is Fawning?</h3>
+        <p>Misschien merk je dat je altijd de lieve vrede bewaart. Dat je "ja" zegt terwijl je "nee" voelt. In de psychologie noemen we dit de <strong>Fawn-respons</strong>.</p>
+        <p>Het is geen zwakte. Het is een <em>overlevingsstrategie</em>. Waarschijnlijk heb je ooit geleerd dat de enige manier om veilig te zijn, was om anderen gelukkig te maken. Je voelsprieten staan altijd naar buiten gericht.</p>
+    </div>
+
+    <h2>Herken je dit?</h2>
+    <p>Vink aan wat voor jou van toepassing is. Er is geen goed of fout.</p>
+    
+    <div class="checklist" id="checklist">
+        <label class="checkbox-item"><input type="checkbox" onchange="updateFeedback()"> Ik zeg vaak sorry, ook als het niet mijn schuld is.</label>
+        <label class="checkbox-item"><input type="checkbox" onchange="updateFeedback()"> Ik weet vaak beter wat een ander voelt dan wat ik zelf voel.</label>
+        <label class="checkbox-item"><input type="checkbox" onchange="updateFeedback()"> Ik vind het doodeng als iemand boos op me is.</label>
+        <label class="checkbox-item"><input type="checkbox" onchange="updateFeedback()"> Na een sociale afspraak ben ik totaal uitgeput omdat ik me heb aangepast.</label>
+        <label class="checkbox-item"><input type="checkbox" onchange="updateFeedback()"> Ik heb moeite om mijn eigen mening te geven als die afwijkt.</label>
+        
+        <div class="feedback-msg" id="feedback"></div>
+    </div>
+
+    <h2>De weg naar herstel</h2>
+    <p>Herstellen betekent niet dat je onaardig wordt. Het betekent dat je aardig wordt <em>vanuit vrijheid</em>, niet vanuit angst. Hier zijn drie zachte oefeningen.</p>
+
+    <details>
+        <summary>Oefening 1: De Magische Pauze</summary>
+        <div class="details-content">
+            <p><strong>Het probleem:</strong> Je zegt "ja" voordat je er erg in hebt.</p>
+            <p><strong>De oplossing:</strong> Koop tijd. Je hoeft niet direct te antwoorden.</p>
+            <p>Leer jezelf deze standaardzin aan:</p>
+            <blockquote style="font-style: italic; color: var(--primary-dark); border-left: 3px solid var(--accent); padding-left: 10px;">
+                "Ik moet even in mijn agenda kijken / Ik kom er later op terug."
+            </blockquote>
+            <p>Dit geeft je zenuwstelsel de tijd om te zakken van paniek naar rust, zodat je kunt voelen wat JIJ wilt.</p>
+        </div>
+    </details>
+
+    <details>
+        <summary>Oefening 2: Terug in je lijf (Gronden)</summary>
+        <div class="details-content">
+            <p>Als je 'fawnt', verlaat je eigenlijk je eigen lichaam om bij de ander te zijn. Kom terug naar huis.</p>
+            <ul>
+                <li>Zet beide voeten stevig op de grond.</li>
+                <li>Knijp even hard in je handen en laat los.</li>
+                <li>Kijk rond in de kamer en noem 3 dingen die groen zijn.</li>
+            </ul>
+            <p>Dit vertelt je hersenen: <em>"Ik ben hier. Ik ben veilig. Ik ben volwassen."</em></p>
+        </div>
+    </details>
+
+    <details>
+        <summary>Oefening 3: Micro-grenzen</summary>
+        <div class="details-content">
+            <p>Je hoeft niet te beginnen met grote confrontaties. Begin klein en veilig.</p>
+            <div class="tip-box">
+                <strong>Oefen vandaag met één klein ding:</strong><br>
+                Als iemand vraagt "Wat wil je eten?" of "Wat wil je drinken?", zeg dan niet "Maakt niet uit", maar maak een keuze. <br><br>
+                <em>"Ik wil graag thee."</em>
+            </div>
+            <p>Elke keer dat je een voorkeur uitspreekt en de wereld niet vergaat, heelt je systeem een beetje.</p>
+        </div>
+    </details>
+
+    <div style="margin-top: 40px; background: #eef5f1; padding: 20px; border-radius: 10px; text-align: center;">
+        <h3 style="margin-top:0; color: var(--primary-dark);">Affirmatie voor jou</h3>
+        <p style="font-size: 1.1rem;">"Mijn behoeften doen ertoe. Ik mag ruimte innemen zonder toestemming te vragen."</p>
+    </div>
+
+    <div class="footer">
+        Gemaakt met zorg <span class="heart">♥</span> | Stapje voor stapje.
+    </div>
+</div>
+
+<script>
+    function updateFeedback() {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+        const feedbackDiv = document.getElementById('feedback');
+        
+        if (checkboxes.length > 0) {
+            feedbackDiv.style.opacity = 1;
+            if (checkboxes.length === 1) {
+                feedbackDiv.innerText = "Het is moedig dat je dit patroon herkent. Dat is de eerste stap.";
+            } else if (checkboxes.length < 4) {
+                feedbackDiv.innerText = "Je bent niet alleen. Veel vrouwen herkennen deze signalen.";
+            } else {
+                feedbackDiv.innerText = "Dit klinkt als een diep ingesleten overlevingsmechanisme. Wees zacht voor jezelf.";
+            }
+        } else {
+            feedbackDiv.style.opacity = 0;
+        }
+    }
+</script>
+
+</body>
+</html>
