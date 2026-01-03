@@ -438,7 +438,7 @@
             // Categorie: Ontwikkeling / Werk
             { id: 20, cat: 'werk', name: "MD Profiel Anita", icon: "fa-fingerprint", url: "profiel blauw-groen2.html" },
             { id: 21, cat: 'werk', name: "MD Werk", icon: "fa-briefcase", url: "mdspotter - werk.html" },
-            { id: 22, cat: 'werk', name: "MD PrivÃ©", icon: "fa-home", url: "mdspotter - prive.html" },
+            { id: 22, cat: 'werk', name: "MD Privé", icon: "fa-home", url: "mdspotter - prive.html" },
             { id: 23, cat: 'werk', name: "Fawning", icon: "fa-handshake", url: "fawning.html" },
 
             // Categorie: Sociaal / Spel
@@ -465,7 +465,9 @@
             startClock();
             setRandomQuote();
             fetchWeather();
-            renderApps('dagelijks'); // Start met dagelijks
+            const initialTab = getInitialTab();
+            setActiveTab(initialTab);
+            renderApps(initialTab); // Start met dagelijks
             
             if(bgMode === 'photo') {
                 const randomImg = natureImages[Math.floor(Math.random() * natureImages.length)];
@@ -474,6 +476,22 @@
             }
         }
 
+        function getInitialTab() {
+            const hash = (window.location.hash || '').replace('#', '').trim();
+            const allowed = ['dagelijks', 'meditatie', 'werk', 'sociaal'];
+            return allowed.includes(hash) ? hash : 'dagelijks';
+        }
+
+        function setActiveTab(category) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                const handler = btn.getAttribute('onclick') || '';
+                if (handler.includes(`'${category}'`)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
         function startClock() {
             function update() {
                 const now = new Date();
@@ -572,7 +590,7 @@
                 const temp = Math.round(data.current_weather.temperature);
                 const code = data.current_weather.weathercode;
                 
-                document.getElementById('weather-text').innerText = `${temp}Â°C`;
+                document.getElementById('weather-text').innerText = `${temp}°C`;
                 const iconElement = document.getElementById('weather-icon');
                 
                 iconElement.className = 'fas'; 
@@ -613,6 +631,8 @@
     </script>
 </body>
 </html>
+
+
 
 
 
