@@ -3,110 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mijn Weekmenu & Boodschappen (Responsive)</title>
+    <title>Mijn Weekmenu & Boodschappen (V7)</title>
     <style>
-        /* --- ALGEMENE STIJL --- */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f8; color: #333; margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
         
         h1, h2 { text-align: center; color: #2c3e50; margin-bottom: 10px; }
-        h1 { font-size: 1.8rem; }
         .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 25px; font-size: 0.9rem; }
 
-        /* --- PLANNER (PC DEFAULT) --- */
+        /* PLANNER */
         .day-row { display: flex; align-items: center; background: #fff; border-bottom: 1px solid #eee; padding: 12px 5px; gap: 10px; }
-        .day-label { font-weight: 700; width: 90px; color: #2c3e50; font-size: 0.9rem; flex-shrink: 0; } /* flex-shrink: 0 zorgt dat tekst niet plet */
-        .day-select { flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95rem; background: white; max-width: 100%; }
-        .person-input-group { display: flex; align-items: center; gap: 5px; background: #f9f9f9; padding: 5px 10px; border-radius: 6px; border: 1px solid #eee; flex-shrink: 0; }
+        .day-label { font-weight: 700; width: 90px; color: #2c3e50; font-size: 0.9rem; }
+        .day-select { flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95rem; }
+        .person-input-group { display: flex; align-items: center; gap: 5px; background: #f9f9f9; padding: 5px 10px; border-radius: 6px; border: 1px solid #eee;}
         .person-input { width: 40px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-weight: bold; }
 
-        /* --- BASICS --- */
+        /* BASICS */
         .basics-section { background: #fafafa; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid #eee; }
         .basics-input-row { display: flex; gap: 10px; margin-bottom: 15px; }
         .basics-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
         .basic-item { display: flex; align-items: center; background: white; padding: 8px; border-radius: 6px; border: 1px solid #e0e0e0; font-size: 0.9rem; }
         .basic-qty { width: 35px; padding: 3px; margin: 0 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
         .basic-del { margin-left: auto; color: #e74c3c; cursor: pointer; font-weight: bold; padding: 0 5px; font-size: 1.2rem; }
-        
-        /* --- KNOPPEN --- */
+        .basic-del:hover { color: #c0392b; }
+
+        /* KNOPPEN */
         .btn-group { display: flex; gap: 10px; margin-top: 25px; }
         button { border: none; padding: 14px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; flex: 1; transition: 0.2s; color: white; display: flex; align-items: center; justify-content: center; gap: 8px;}
         .btn-calc { background-color: #27ae60; } .btn-calc:hover { background-color: #219150; }
         .btn-book { background-color: #e67e22; } .btn-book:hover { background-color: #d35400; }
-        .btn-clear { background-color: #95a5a6; max-width: 60px; flex: 0 0 60px; } /* Fixed width voor prullenbak */
-        
+        .btn-clear { background-color: #95a5a6; max-width: 50px; }
         .btn-toggle { background-color: #34495e; font-size: 0.9rem; padding: 10px; margin-bottom: 15px; width: 100%; color: white;}
+        
         .action-btn { width: 100%; margin-top: 10px; padding: 12px; }
         .btn-whatsapp { background-color: #25D366; }
 
-        /* --- LIJSTEN --- */
+        /* LIJST STIJL */
         .view-section { display: none; margin-top: 30px; border-top: 2px dashed #eee; padding-top: 20px; animation: fadeIn 0.4s; }
         .active { display: block; }
         @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
         .category-header { background-color: #34495e; color: white; padding: 8px 12px; border-radius: 6px; margin-top: 15px; font-weight: bold; font-size: 0.9rem; }
-        .shopping-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; transition: 0.2s; }
+        
+        .shopping-item { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; transition: 0.2s; }
         .shopping-item input { margin-right: 12px; transform: scale(1.3); cursor: pointer; accent-color: #aaa; }
-        .shopping-item label { flex-grow: 1; cursor: pointer; display: flex; align-items: center; flex-wrap: wrap;}
+        .shopping-item label { flex-grow: 1; cursor: pointer; display: flex; align-items: center; }
+        
+        /* STYLING VOOR "AL IN HUIS" */
         .shopping-item.checked { color: #aaa; text-decoration: line-through; background-color: #fcfcfc; }
         .shopping-item.hidden { display: none; }
-        .store-tag { font-size: 0.7em; padding: 2px 6px; border-radius: 4px; margin-left: auto; font-weight: bold; text-transform: uppercase; text-decoration: none !important; display: inline-block; white-space: nowrap; }
+
+        .store-tag { font-size: 0.7em; padding: 2px 6px; border-radius: 4px; margin-left: auto; font-weight: bold; text-transform: uppercase; text-decoration: none !important; display: inline-block; }
         .tag-lidl { background-color: #fff3e0; color: #ef6c00; }
         .tag-eko { background-color: #e8f5e9; color: #2e7d32; }
 
-        /* --- 📱 MOBIELE AANPASSINGEN (DE FIX) --- */
-        @media (max-width: 600px) {
-            body { padding: 10px; } /* Minder rand om de app */
-            .container { padding: 15px; } 
-
-            /* Planner regels onder elkaar zetten */
-            .day-row { flex-wrap: wrap; gap: 5px; }
-            .day-label { width: 100%; margin-bottom: 2px; font-size: 1rem; color: #34495e; }
-            .day-select { flex-grow: 10; min-width: 0; } /* Neemt de meeste ruimte in */
-            .person-input-group { flex-grow: 1; } /* Past ernaast */
-
-            /* Knoppen stapelen */
-            .btn-group { flex-wrap: wrap; }
-            .btn-calc, .btn-book { flex: 1 1 100%; margin-bottom: 5px; } /* Volle breedte */
-            .btn-clear { flex: 1 1 100%; max-width: 100%; background-color: #e74c3c; margin-top:5px; } /* Prullenbak ook groot en rood op mobiel */
-
-            /* Basics lijst iets compacter */
-            .basics-list { grid-template-columns: 1fr; } /* 1 kolom op mobiel */
-        }
-
-        /* PRINT STIJL */
+        /* PRINT */
         @media print {
             .no-print, .btn-group, .basics-section, #planner-area, .info-box { display: none !important; }
             .view-section { display: block !important; border: none; }
-            .shopping-item.checked { display: none; }
+            .shopping-item.checked { display: none; } /* Print nooit wat je al hebt */
             .recipe-page { page-break-inside: avoid; border: 1px solid #ccc; margin-bottom: 20px; padding: 20px; }
-            body, .container { box-shadow: none; margin: 0; padding: 0; max-width: 100%; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1 class="no-print">🥑 Weekmenu Planner</h1>
+    <h1 class="no-print">🥑 Weekmenu & Boodschappen</h1>
     <p class="subtitle no-print">Plan, check je voorraad & shop</p>
 
     <div id="planner-area" class="no-print">
         </div>
 
     <div class="basics-section no-print">
-        <h3 style="margin-top:0;">🏡 Standaard Items</h3>
-        <p style="font-size:0.85rem; color:#666; margin-bottom:10px;">Dingen die je vaak nodig hebt.</p>
+        <h3 style="margin-top:0;">🏡 Mijn Standaard Boodschappen</h3>
+        <p style="font-size:0.85rem; color:#666; margin-bottom:10px;">Dingen die je vaak nodig hebt (Koffie, Wc-papier, etc.). Ze worden onthouden!</p>
         <div class="basics-input-row">
-            <input type="text" id="new-basic-name" placeholder="Typ hier (bv. Koffie)..." style="flex-grow:1; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:16px;">
-            <button onclick="addBasicItem()" style="flex:0; padding:10px 20px; background:#3498db;">+</button>
+            <input type="text" id="new-basic-name" placeholder="Typ hier (en druk op Enter)..." style="flex-grow:1; padding:8px; border:1px solid #ddd; border-radius:4px;">
+            <button onclick="addBasicItem()" style="flex:0; padding:8px 20px; background:#3498db;">+</button>
         </div>
         <div id="basics-list" class="basics-list"></div>
     </div>
 
     <div class="btn-group no-print">
         <button class="btn-calc" onclick="showShoppingList()">🛒 Maak Lijst</button>
-        <button class="btn-book" onclick="showBooklet()">📖 Boekje</button>
-        <button class="btn-clear" onclick="clearWeek()" title="Wis planning">🗑️ Wis</button>
+        <button class="btn-book" onclick="showBooklet()">📖 Receptenboekje</button>
+        <button class="btn-clear" onclick="clearWeek()" title="Wis planning">🗑️</button>
     </div>
 
     <div id="view-shopping" class="view-section">
@@ -116,7 +98,7 @@
 
         <div id="shopping-list-content"></div>
         
-        <button class="action-btn btn-whatsapp no-print" onclick="copyToClipboard()">📱 Kopieer (voor WhatsApp/Notities)</button>
+        <button class="action-btn btn-whatsapp no-print" onclick="copyToClipboard()">📱 Kopieer (Alleen wat ik nog moet kopen)</button>
         <button class="action-btn no-print" onclick="window.print()" style="background:#3498db;">🖨️ Print Lijst</button>
     </div>
 
@@ -129,7 +111,8 @@
 
 <script>
     // --- 1. RECEPTEN DATABASE ---
-    const recipesDB = {
+const recipesDB = {
+        // --- BESTAANDE RECEPTEN ---
         "Orzo Ratatouille": {
             ing: { "AGF": ["1 Rode paprika", "1 Gele paprika", "1 Aubergine", "1 Courgette", "1 Rode ui", "250g Cherrytomaatjes", "200g Spinazie", "2 tenen Knoflook", "Verse Basilicum"], "Houdbaar": ["300g Orzo", "1 blik Tomatenblokjes", "1 blik Kikkererwten", "1 el Tahin", "Pijnboompitten", "Groentebouillon", "Olijfolie", "Italiaanse kruiden"] },
             steps: ["Oven 200gr. Snijd groenten.", "Rooster groenten 30 min met olie/kruiden.", "Kook orzo met tomatenblokjes 8 min.", "Voeg tahin, spinazie, kikkererwten toe.", "Meng groenten erdoor."]
@@ -153,10 +136,48 @@
         "Romige Tomaten Risotto": {
             ing: { "AGF": ["1 Gele ui", "3 tenen Knoflook", "500g Honingtomaten", "Verse Basilicum"], "Houdbaar": ["300g Risotto rijst", "1 blik Tomatenblokjes", "700ml Groentebouillon", "Olijfolie"] },
             steps: ["Rooster tomaatjes.", "Fruit ui/knoflook, bak rijst mee.", "Voeg tomatenblokjes en bouillon stapsgewijs toe.", "Kook gaar, meng geroosterde tomaten erdoor."]
+        },
+
+        // --- NIEUWE RECEPTEN UIT PDF ---
+        "Noten-Vijgenbrood": {
+            ing: { "Houdbaar": ["230g Speltbloem", "1 el Bakpoeder", "1 tl Kaneel", "30g Ahornsiroop", "70ml Kokosolie", "100g Walnoten", "100g Hazelnoten", "150g Gedroogde vijgen", "150g Medjouldadels", "60g Zonnebloempitten", "60g Pompoenpitten"], "AGF": ["50ml Citroensap"] },
+            steps: ["Oven 180gr. Meng droge ingrediënten.", "Meng natte ingrediënten en voeg samen.", "Roer noten, vijgen en dadels erdoor.", "Giet in vorm, bestrooi met pitten.", "Bak 45-50 min."]
+        },
+        "Kikkererwten Scramble": {
+            ing: { "Houdbaar": ["400g Kikkererwten (blik)", "8 Zongedroogde tomaatjes", "2 el Tomatenpuree", "0.5 tl Sambal oelek", "2 el Amandelmelk", "4 sneden Volkorenbrood", "Olijfolie", "Komijnpoeder", "Italiaanse kruiden"], "AGF": ["1 Ui", "2 Avocado's", "Verse Bieslook"] },
+            steps: ["Fruit ui. Voeg kikkererwten + kruiden toe (5 min).", "Prak fijn. Voeg tomaat, sambal toe.", "Voeg amandelmelk toe.", "Serveer op toast met avocado."]
+        },
+        "Super Green Soep": {
+            ing: { "AGF": ["1 Ui", "5 tenen Knoflook", "4 stengels Bleekselderij", "1 Bloemkool", "450g Spruitjes", "200g Verse spinazie", "Verse Munt", "Verse Peterselie", "2 el Limoensap"], "Houdbaar": ["100g Cashewnoten", "1.2L Groentebouillon", "400ml Kokosmelk", "Olijfolie", "Paprikapoeder"] },
+            steps: ["Week cashews 30 min. Fruit ui/knoflook.", "Bak bleekselderij en kruiden.", "Voeg bloemkool, spruitjes, spinazie toe.", "Kook met bouillon en cashews 25 min.", "Voeg kokosmelk/limoen toe en pureer."]
+        },
+        "Zoete Aardappel Pindasoep": {
+            ing: { "AGF": ["1 Ui", "3 tenen Knoflook", "2cm Verse gember", "750g Zoete aardappels", "Verse Koriander"], "Houdbaar": ["1L Groentebouillon", "4 el Pindakaas", "1 tl Limoensap", "Olijfolie", "Kerriepoeder", "Kurkuma", "Komijn"], "Zuivel/Koeling": ["Plantaardige kookroom"] },
+            steps: ["Fruit ui, knoflook, gember.", "Bak kruiden mee. Voeg aardappel + bouillon toe.", "Kook 15 min zacht.", "Voeg pindakaas + limoen toe. Pureer."]
+        },
+        "Cheesy Broccolisoep": {
+            ing: { "AGF": ["1 Ui", "3 tenen Knoflook", "2 stengels Bleekselderij", "2 Wortels", "1 Zoete aardappel", "1 Bloemkool", "1 Broccoli", "Verse Dille", "Citroensap"], "Houdbaar": ["750ml Groentebouillon", "400ml Kokosmelk", "Handje Cashewnoten", "1 tl Mosterd", "Edelgistvlokken (opt)"] },
+            steps: ["Fruit ui/knoflook. Bak groenten (behalve broccoli).", "Voeg mosterd/kruiden toe. Kook met bouillon/kokosmelk 25 min.", "Kook broccoli apart.", "Pureer soep met cashews. Voeg broccoli toe."]
+        },
+        "Lasagnesoep": {
+            ing: { "Vers/Koeling": ["400g Vegan rul gehakt"], "AGF": ["1 Grote ui", "4 tenen Knoflook", "2 Wortels", "2 stengels Bleekselderij", "1 Rode paprika", "1.5 Courgette", "Verse Basilicum"], "Houdbaar": ["2 el Tomatenpuree", "2 blikken Tomatenblokjes", "500ml Groentebouillon", "200g Lasagnebladen", "Pijnboompitten", "Oregano", "Tijm"] },
+            steps: ["Fruit ui/knoflook. Bak gehakt.", "Bak groenten en kruiden 5 min.", "Voeg tomaten en bouillon toe. Kook.", "Voeg gebroken lasagnebladen toe (15 min)."]
+        },
+        "Orzosoep Citroen & Dille": {
+            ing: { "AGF": ["1 Ui", "3 tenen Knoflook", "2 Winterpenen", "3 stengels Bleekselderij", "2 Citroenen (sap)", "Verse Dille"], "Houdbaar": ["225g Orzo", "250g Cannellini bonen", "900ml Groentebouillon", "350ml Kokosmelk", "Tijm", "Kurkuma"] },
+            steps: ["Fruit ui/knoflook. Bak wortel/bleekselderij.", "Voeg kruiden, orzo, bonen, bouillon, kokosmelk toe.", "Kook 10 min tot orzo gaar is.", "Roer citroensap en dille erdoor."]
+        },
+        "Vegan Caesarsalade": {
+            ing: { "AGF": ["500g Spruitjes", "250g Ijsbergsla", "1 Rode ui", "Verse Peterselie", "2 Avocado's", "Citroensap"], "Vers/Koeling": ["300g Vegan kipstukjes"], "Houdbaar": ["100g Oud brood (croutons)", "3 el Gedroogde cranberry's", "1 el Hennepzaad", "50g Hummus", "1 tl Dijonmosterd", "Knoflookpoeder", "Cashewnoten"] },
+            steps: ["Oven 165gr. Bak broodblokjes (croutons) 10 min.", "Bak kipstukjes goudbruin.", "Meng gesneden groenten in kom.", "Maak dressing van hummus/mosterd/citroen.", "Meng alles."]
+        },
+        "Pina Colada Smoothie": {
+            ing: { "AGF": ["2 Bananen"], "Diepvries": ["300g Bevroren ananas"], "Houdbaar": ["400ml Kokosmelk", "2 el Agavesiroop", "2 tl Hennepzaad", "Kurkumapoeder"] },
+            steps: ["Doe alles in de blender.", "Mix tot glad en romig.", "Voeg kurkuma toe voor gele kleur."]
         }
     };
-
     const daysOfWeek = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"];
+    // DIT IS DE BELANGRIJKE VARIABELE
     let myBasics = [];
 
     // --- 2. INITIALISATIE ---
@@ -165,6 +186,7 @@
         loadData(); 
         renderBasicsList(); 
         
+        // Enter toets ondersteuning voor basics
         document.getElementById("new-basic-name").addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 event.preventDefault();
@@ -187,7 +209,7 @@
         });
     }
 
-    // --- 3. OPSLAAN & LADEN ---
+    // --- 3. OPSLAAN & LADEN (CRUCIAAL) ---
     function saveData() {
         let plan = {};
         daysOfWeek.forEach((_, i) => {
@@ -195,7 +217,7 @@
             plan[`p-${i}`] = document.getElementById(`pers-${i}`).value;
         });
         localStorage.setItem('App_WeekPlan', JSON.stringify(plan));
-        localStorage.setItem('App_Basics', JSON.stringify(myBasics));
+        localStorage.setItem('App_Basics', JSON.stringify(myBasics)); // Opslaan van de array
     }
 
     function loadData() {
@@ -205,6 +227,7 @@
             if(plan[`p-${i}`]) document.getElementById(`pers-${i}`).value = plan[`p-${i}`];
         });
 
+        // HIER LADEN WE DE STANDAARD BOODSCHAPPEN
         let savedBasics = JSON.parse(localStorage.getItem('App_Basics'));
         if (savedBasics && Array.isArray(savedBasics)) {
             myBasics = savedBasics;
@@ -223,7 +246,7 @@
         let input = document.getElementById('new-basic-name');
         let name = input.value.trim();
         if(name) { 
-            myBasics.push({ name: name, qty: 1, checked: true });
+            myBasics.push({ name: name, qty: 1, checked: true }); // Standaard aangevinkt = Nodig
             input.value = ""; 
             saveData(); 
             renderBasicsList(); 
@@ -247,7 +270,7 @@
         });
     }
 
-    // --- 5. SHOPPING & BOOKLET LOGICA ---
+    // --- 5. LOGICA ---
     function scaleIngredientString(ingString, persons) {
         if (persons == 4) return ingString;
         return ingString.replace(/(\d+([.,]\d+)?)/, (match) => {
@@ -265,6 +288,7 @@
 
         let finalList = [];
         
+        // Recepten
         daysOfWeek.forEach((_, i) => {
             let rName = document.getElementById(`recipe-${i}`).value;
             let pCount = parseFloat(document.getElementById(`pers-${i}`).value) || 4;
@@ -276,10 +300,12 @@
             }
         });
 
+        // Basics (Alleen de aangevinkte!)
         myBasics.forEach(b => {
             if(b.checked) finalList.push({ category: classifyItem(b.name), product: b.qty > 1 ? `${b.qty}x ${b.name}` : b.name });
         });
 
+        // Sorteren
         const route = ["AGF", "Vers/Koeling", "Zuivel/Koeling", "Houdbaar", "Diepvries", "Huishouden", "Overig"];
         let sorted = {}; route.forEach(c => sorted[c] = []);
         finalList.forEach(item => {
@@ -287,6 +313,7 @@
             sorted[c].push(item);
         });
 
+        // Renderen
         const output = document.getElementById('shopping-list-content');
         output.innerHTML = '';
 
