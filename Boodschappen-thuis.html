@@ -292,14 +292,71 @@ const recipesDB = {
     }
 
     // --- 5. LOGICA ---
+    function isMeasurementUnit(word) {
+        const units = new Set(["g", "kg", "mg", "ml", "l", "cl", "dl", "el", "tl"]);
+        return units.has(word);
+    }
+
     function scaleIngredientString(ingString, persons) {
         if (persons == 4) return ingString;
-        return ingString.replace(/(\d+([.,]\d+)?)/, (match) => {
+        return ingString.replace(/(\d+([.,]\d+)?)/g, (match, _num, _dec, offset, full) => {
             let num = parseFloat(match.replace(',', '.'));
             let newNum = (num / 4) * persons;
-            if (newNum % 1 === 0) return newNum;
-            return newNum.toFixed(1).replace('.', ','); 
+            const rest = full.slice(offset + match.length);
+            const unitMatch = rest.match(/^\s*([A-Za-z]+)/);
+            const unit = unitMatch ? unitMatch[1].toLowerCase() : '';
+            if (unit && isMeasurementUnit(unit)) {
+                if (newNum % 1 === 0) return newNum;
+                return newNum.toFixed(1).replace('.', ',');
+            }
+            return String(Math.ceil(newNum));
         });
+    }
+
+    function parseCountItem(text) {
+        const match = text.match(/^(\d+(?:[.,]\d+)?)\s*(?:x\s+|\s+)(.+)$/i);
+        if (!match) return null;
+        let count = parseFloat(match[1].replace(',', '.'));
+        if (!isFinite(count) || count <= 0) return null;
+        return { count, name: match[2].trim() };
+    }
+
+    function formatCount(count) {
+        if (count % 1 === 0) return String(count);
+        return count.toFixed(1).replace('.', ',');
+    }
+
+    function mergeShoppingList(items) {
+        const merged = [];
+        const map = new Map();
+
+        items.forEach(item => {
+            const parsed = parseCountItem(item.product);
+            if (parsed) {
+                const key = `${item.category}|${parsed.name.toLowerCase()}`;
+                if (map.has(key)) {
+                    map.get(key).count += parsed.count;
+                } else {
+                    map.set(key, { category: item.category, name: parsed.name, count: parsed.count, hasCount: true });
+                }
+                return;
+            }
+
+            const key = `${item.category}|${item.product.toLowerCase()}`;
+            if (!map.has(key)) {
+                map.set(key, { category: item.category, product: item.product, hasCount: false });
+            }
+        });
+
+        map.forEach(value => {
+            if (value.hasCount) {
+                merged.push({ category: value.category, product: `${formatCount(value.count)}x ${value.name}` });
+            } else {
+                merged.push({ category: value.category, product: value.product });
+            }
+        });
+
+        return merged;
     }
 
     function showShoppingList() {
@@ -325,6 +382,8 @@ const recipesDB = {
         myBasics.forEach(b => {
             if(b.checked) finalList.push({ category: classifyItem(b.name), product: b.qty > 1 ? `${b.qty}x ${b.name}` : b.name });
         });
+
+        finalList = mergeShoppingList(finalList);
 
         // Sorteren
         const route = ["AGF", "Vers/Koeling", "Zuivel/Koeling", "Houdbaar", "Diepvries", "Huishouden", "Overig"];
