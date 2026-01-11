@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Mijn Focus Planner V2.3 (Crash Proof)</title>
+    <title>Mijn Focus Planner V2.4 (Undo/Redo)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -170,7 +170,7 @@
 
         /* --- CONTROLS / BACKUP BUTTONS --- */
         .control-panel {
-            margin-top: 25px;
+            margin-top: 15px;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -193,6 +193,18 @@
         .btn-save { background: #28a745; color: white; }
         .btn-load { background: #17a2b8; color: white; }
         .btn-paste { background: #6c757d; color: white; }
+        
+        /* Undo / Redo knoppen */
+        .undo-redo-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        .btn-undo { background: #5a6268; color: white; flex: 1; opacity: 0.5; pointer-events: none; }
+        .btn-redo { background: #5a6268; color: white; flex: 1; opacity: 0.5; pointer-events: none; }
+        .active-history-btn { opacity: 1; pointer-events: auto; background: #6c757d; }
+        .active-history-btn:active { background: #545b62; }
+
 
         /* --- PASTE AREA --- */
         #pasteAreaContainer {
@@ -226,6 +238,7 @@
             
             .control-panel { flex-direction: row; flex-wrap: wrap; }
             .btn-backup { flex: 1; }
+            .undo-redo-container { width: 100%; }
         }
     </style>
 </head>
@@ -262,7 +275,16 @@
             <h2 style="margin-top:0; font-size: 1.2rem;">🚀 Actie Lijst</h2>
             <div id="smartList"><ol style="padding-left:0; list-style:none; min-height: 50px;" id="action-list-ol"></ol></div>
             
-            <div class="control-panel">
+            <div class="control-panel" style="margin-top: 25px;">
+                <div class="undo-redo-container">
+                    <button id="btnUndo" onclick="undo()" class="btn-backup btn-undo" title="Ongedaan maken (Ctrl+Z)">
+                        ↩️ Undo
+                    </button>
+                    <button id="btnRedo" onclick="redo()" class="btn-backup btn-redo" title="Opnieuw uitvoeren (Ctrl+Y)">
+                        ↪️ Redo
+                    </button>
+                </div>
+                
                 <button type="button" onclick="clearAll()" class="btn-backup btn-clear">
                     ♻️ Wissen
                 </button>
@@ -370,6 +392,101 @@
         // --- DATA BEHEER ---
         let tasks = JSON.parse(localStorage.getItem('eisenhowerTasksMobile')) || [];
         let ideas = JSON.parse(localStorage.getItem('eisenhowerIdeas')) || [];
+        
+        // --- HISTORY (UNDO/REDO) BEHEER ---
+        let historyStack = [];
+        let redoStack = [];
+        const MAX_HISTORY = 50;
+
+        function saveState() {
+            // Maak een 'diepe' kopie van de huidige staat en bewaar deze
+            const state = {
+                tasks: JSON.parse(JSON.stringify(tasks)),
+                ideas: JSON.parse(JSON.stringify(ideas))
+            };
+            
+            historyStack.push(state);
+            if(historyStack.length > MAX_HISTORY) historyStack.shift();
+            
+            // Wanneer we een nieuwe actie doen, is de 'toekomst' (redo) niet meer geldig
+            redoStack = []; 
+            updateHistoryUI();
+        }
+
+        function undo() {
+            if(historyStack.length === 0) return;
+
+            // Huidige staat bewaren in Redo stack voor het geval we terug willen
+            const currentState = {
+                tasks: JSON.parse(JSON.stringify(tasks)),
+                ideas: JSON.parse(JSON.stringify(ideas))
+            };
+            redoStack.push(currentState);
+
+            // Vorige staat ophalen
+            const prevState = historyStack.pop();
+            tasks = prevState.tasks;
+            ideas = prevState.ideas;
+
+            saveTasks();
+            saveIdeas();
+            render();
+            renderIdeas();
+            updateHistoryUI();
+        }
+
+        function redo() {
+            if(redoStack.length === 0) return;
+
+            // Huidige staat bewaren in History stack
+            const currentState = {
+                tasks: JSON.parse(JSON.stringify(tasks)),
+                ideas: JSON.parse(JSON.stringify(ideas))
+            };
+            historyStack.push(currentState);
+
+            // Volgende staat ophalen
+            const nextState = redoStack.pop();
+            tasks = nextState.tasks;
+            ideas = nextState.ideas;
+
+            saveTasks();
+            saveIdeas();
+            render();
+            renderIdeas();
+            updateHistoryUI();
+        }
+
+        function updateHistoryUI() {
+            const btnUndo = document.getElementById('btnUndo');
+            const btnRedo = document.getElementById('btnRedo');
+            
+            if(historyStack.length > 0) {
+                btnUndo.classList.add('active-history-btn');
+            } else {
+                btnUndo.classList.remove('active-history-btn');
+            }
+
+            if(redoStack.length > 0) {
+                btnRedo.classList.add('active-history-btn');
+            } else {
+                btnRedo.classList.remove('active-history-btn');
+            }
+        }
+        
+        // Sneltoetsen luisteren
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                undo();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+                e.preventDefault();
+                redo();
+            }
+        });
+
+        // --- EINDE HISTORY BEHEER ---
 
         function saveTasks() {
             localStorage.setItem('eisenhowerTasksMobile', JSON.stringify(tasks));
@@ -389,6 +506,8 @@
 
             if (!text.trim()) return;
 
+            saveState(); // SAVE FOR UNDO
+
             tasks.push({ id: Date.now(), text, q, p });
             document.getElementById('taskInput').value = '';
             
@@ -399,6 +518,9 @@
         function addIdea() {
             const text = document.getElementById('ideaInput').value;
             if (!text.trim()) return;
+            
+            saveState(); // SAVE FOR UNDO
+
             ideas.push({ id: Date.now(), text });
             document.getElementById('ideaInput').value = '';
             saveIdeas();
@@ -406,12 +528,14 @@
         }
 
         function removeTask(id) {
+            saveState(); // SAVE FOR UNDO
             tasks = tasks.filter(t => t.id !== id);
             saveTasks();
             render();
         }
 
         function removeIdea(id) {
+            saveState(); // SAVE FOR UNDO
             ideas = ideas.filter(i => i.id !== id);
             saveIdeas();
             renderIdeas();
@@ -419,7 +543,10 @@
 
         function clearAll() {
             if(confirm("Weet je zeker dat je alles wilt wissen voor een nieuwe dag?")) {
+                saveState(); // SAVE FOR UNDO
                 tasks = [];
+                // Ideas wissen we meestal niet bij een nieuwe dag, maar in deze functie wel
+                // Als je wilt dat ideeën blijven staan, haal dan de volgende regel weg in de clear logica (maar voor undo moet de state wel kloppen)
                 localStorage.removeItem('eisenhowerTasksMobile'); 
                 render();
             }
@@ -429,7 +556,7 @@
         
         function exportData() {
             const backup = {
-                version: "2.3",
+                version: "2.4",
                 timestamp: new Date().toISOString(),
                 tasks: tasks,
                 ideas: ideas
@@ -457,15 +584,12 @@
             const file = inputElement.files[0];
             if (!file) return;
 
-            // We gebruiken een timeout om de UI thread van de browser te laten rusten 
-            // nadat de file dialog sluit. Dit voorkomt vaak crashes in Edge.
             setTimeout(() => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     processJSON(e.target.result);
                 };
                 reader.readAsText(file);
-                // Reset input
                 inputElement.value = '';
             }, 500);
         }
@@ -489,6 +613,7 @@
                 
                 if (data && Array.isArray(data.tasks)) {
                     if(confirm(`Gegevens gevonden van ${data.timestamp ? data.timestamp.slice(0,10) : '?'}. Overschrijven?`)) {
+                        saveState(); // SAVE FOR UNDO (Even the import can be undone!)
                         tasks = data.tasks;
                         ideas = Array.isArray(data.ideas) ? data.ideas : [];
                         saveTasks();
@@ -560,6 +685,7 @@
 
             initMatrixSortables();
             initListSortable();
+            updateHistoryUI(); // Ensure buttons are correct state on load
         }
 
         function renderIdeas() {
@@ -600,6 +726,8 @@
         }
 
         function updateMatrixOrder() {
+            saveState(); // SAVE FOR UNDO BEFORE CHANGE APPLIES TO DATA
+            
             let newTasksArray = [];
             const scanBox = (qNum) => {
                 const box = document.querySelector(`.task-container[data-q="${qNum}"]`);
@@ -630,6 +758,8 @@
                 delay: 100,
                 delayOnTouchOnly: true,
                 onEnd: function (evt) {
+                    saveState(); // SAVE FOR UNDO
+                    
                     const newIds = Array.from(listEl.querySelectorAll('.task-card')).map(el => parseInt(el.getAttribute('data-id')));
                     const q4Items = tasks.filter(t => t.q === 4);
                     const sortedNonQ4 = [];
@@ -653,6 +783,8 @@
                 delay: 100,
                 delayOnTouchOnly: true,
                 onEnd: function (evt) {
+                    saveState(); // SAVE FOR UNDO
+                    
                     const newIds = Array.from(container.querySelectorAll('.idea-item')).map(el => parseInt(el.getAttribute('data-id')));
                     const newIdeas = [];
                     newIds.forEach(id => {
