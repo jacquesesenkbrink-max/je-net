@@ -59,10 +59,15 @@
 
         /* PRINT */
         @media print {
+            @page { margin: 12mm; }
+            body { margin: 0; padding: 0; background: white; }
+            .container { max-width: none; margin: 0; padding: 0; border-radius: 0; box-shadow: none; }
             .no-print, .btn-group, .basics-section, #planner-area, .info-box { display: none !important; }
-            .view-section { display: block !important; border: none; }
+            .view-section { display: block !important; border: none; margin-top: 0; padding-top: 0; }
             .shopping-item.checked { display: none; } /* Print nooit wat je al hebt */
             .recipe-page { page-break-inside: avoid; border: 1px solid #ccc; margin-bottom: 20px; padding: 20px; }
+            body[data-print-mode="booklet"] #view-shopping { display: none !important; }
+            body[data-print-mode="shopping"] #view-booklet { display: none !important; }
         }
     </style>
 </head>
@@ -220,6 +225,23 @@ const recipesDB = {
             steps: ["Oven 200gr. Meng tofu met maizena/kerrie. Bak tofu en bloemkool 30 min.", "Fruit ui, knoflook, gember en currypasta. Voeg bouillon toe.", "Blend limabonen, melk, amandelpasta en edelgist tot romige saus.", "Meng saus in pan. Voeg kikkererwten en spinazie toe. Schep tofu/bloemkool erdoor."]
         }
     };
+    const recipeCategories = {
+        "Orzo Ratatouille": "Pasta/Orzo",
+        "Ratatouille Curry": "Curry",
+        "Eenpansgerecht Orzo & Feta": "Pasta/Orzo",
+        "Gevulde Aubergine (Linzen)": "Oven",
+        "Romige Paddenstoelen Risotto": "Risotto",
+        "Romige Tomaten Risotto": "Risotto",
+        "Noten-Vijgenbrood": "Baksel",
+        "Kikkererwten Scramble": "Ontbijt/Lunch",
+        "Super Green Soep": "Soep",
+        "Zoete Aardappel Pindasoep": "Soep",
+        "Cheesy Broccolisoep": "Soep",
+        "Lasagnesoep": "Soep",
+        "Orzosoep Citroen & Dille": "Soep",
+        "Vegan Caesarsalade": "Salade",
+        "Pina Colada Smoothie": "Smoothie"
+    };
     const daysOfWeek = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"];
     // DIT IS DE BELANGRIJKE VARIABELE
     let myBasics = [];
@@ -229,6 +251,7 @@ const recipesDB = {
         buildPlanner(); 
         loadData(); 
         renderBasicsList(); 
+        document.body.dataset.printMode = 'shopping';
         
         // Enter toets ondersteuning voor basics
         document.getElementById("new-basic-name").addEventListener("keypress", function(event) {
@@ -239,10 +262,31 @@ const recipesDB = {
         });
     };
 
+    function getRecipeCategory(name) {
+        return recipeCategories[name] || "Overig";
+    }
+
     function buildPlanner() {
         const container = document.getElementById('planner-area');
+        const recipesByCat = {};
+        Object.keys(recipesDB)
+            .sort((a, b) => a.localeCompare(b, 'nl'))
+            .forEach(name => {
+                const cat = getRecipeCategory(name);
+                if (!recipesByCat[cat]) recipesByCat[cat] = [];
+                recipesByCat[cat].push(name);
+            });
+
         let optionsHtml = `<option value="">-- Kies gerecht --</option>`;
-        for (let r in recipesDB) { optionsHtml += `<option value="${r}">${r}</option>`; }
+        Object.keys(recipesByCat)
+            .sort((a, b) => a.localeCompare(b, 'nl'))
+            .forEach(cat => {
+                optionsHtml += `<optgroup label="${cat}">`;
+                recipesByCat[cat].forEach(name => {
+                    optionsHtml += `<option value="${name}">${name}</option>`;
+                });
+                optionsHtml += `</optgroup>`;
+            });
         daysOfWeek.forEach((day, i) => {
             container.innerHTML += `
             <div class="day-row">
@@ -404,6 +448,7 @@ const recipesDB = {
     }
 
     function showShoppingList() {
+        document.body.dataset.printMode = 'shopping';
         document.getElementById('view-shopping').classList.add('active');
         document.getElementById('view-booklet').classList.remove('active');
         saveData();
@@ -559,6 +604,7 @@ const recipesDB = {
     }
 
     function showBooklet() {
+        document.body.dataset.printMode = 'booklet';
         document.getElementById('view-booklet').classList.add('active');
         document.getElementById('view-shopping').classList.remove('active');
         const content = document.getElementById('booklet-content');
