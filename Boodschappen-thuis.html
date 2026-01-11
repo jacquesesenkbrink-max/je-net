@@ -69,14 +69,14 @@
 <body>
 
 <div class="container">
-    <h1 class="no-print">🥑 Weekmenu & Boodschappen</h1>
+    <h1 class="no-print">Weekmenu &amp; Boodschappen</h1>
     <p class="subtitle no-print">Plan, check je voorraad & shop</p>
 
     <div id="planner-area" class="no-print">
         </div>
 
     <div class="basics-section no-print">
-        <h3 style="margin-top:0;">🏡 Mijn Standaard Boodschappen</h3>
+        <h3 style="margin-top:0;">Mijn Standaard Boodschappen</h3>
         <p style="font-size:0.85rem; color:#666; margin-bottom:10px;">Dingen die je vaak nodig hebt (Koffie, Wc-papier, etc.). Ze worden onthouden!</p>
         <div class="basics-input-row">
             <input type="text" id="new-basic-name" placeholder="Typ hier (en druk op Enter)..." style="flex-grow:1; padding:8px; border:1px solid #ddd; border-radius:4px;">
@@ -86,26 +86,26 @@
     </div>
 
     <div class="btn-group no-print">
-        <button class="btn-calc" onclick="showShoppingList()">🛒 Maak Lijst</button>
-        <button class="btn-book" onclick="showBooklet()">📖 Receptenboekje</button>
-        <button class="btn-clear" onclick="clearWeek()" title="Wis planning">🗑️</button>
+        <button class="btn-calc" onclick="showShoppingList()">Maak Lijst</button>
+        <button class="btn-book" onclick="showBooklet()">Receptenboekje</button>
+        <button class="btn-clear" onclick="clearWeek()" title="Wis planning">Wis</button>
     </div>
 
     <div id="view-shopping" class="view-section">
-        <h2>🛒 Boodschappenlijst</h2>
+        <h2>Boodschappenlijst</h2>
         
-        <button class="btn-toggle no-print" onclick="toggleCheckedItems()">👁️ Verberg / Toon wat ik al heb</button>
+        <button class="btn-toggle no-print" onclick="toggleCheckedItems()" data-state="shown">Verberg wat ik al heb</button>
 
         <div id="shopping-list-content"></div>
         
-        <button class="action-btn btn-whatsapp no-print" onclick="copyToClipboard()">📱 Kopieer (Alleen wat ik nog moet kopen)</button>
-        <button class="action-btn no-print" onclick="window.print()" style="background:#3498db;">🖨️ Print Lijst</button>
+        <button class="action-btn btn-whatsapp no-print" onclick="copyToClipboard()">Kopieer (Alleen wat ik nog moet kopen)</button>
+        <button class="action-btn no-print" onclick="window.print()" style="background:#3498db;">Print Lijst</button>
     </div>
 
     <div id="view-booklet" class="view-section">
-        <h2 class="no-print">📖 Weekboekje</h2>
+        <h2 class="no-print">Weekboekje</h2>
         <div id="booklet-content"></div>
-        <button class="action-btn no-print" onclick="window.print()" style="background:#3498db;">🖨️ Print Boekje</button>
+        <button class="action-btn no-print" onclick="window.print()" style="background:#3498db;">Print Boekje</button>
     </div>
 </div>
 
@@ -260,13 +260,34 @@ const recipesDB = {
         const list = document.getElementById('basics-list');
         list.innerHTML = '';
         myBasics.forEach((item, i) => {
-            list.innerHTML += `
-            <div class="basic-item" title="Vink aan als je dit deze week nodig hebt">
-                <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleBasic(${i})">
-                <input type="number" class="basic-qty" value="${item.qty}" min="1" onchange="updateBasicQty(${i}, this.value)">
-                <span style="flex-grow:1; margin-left:5px;">${item.name}</span>
-                <span class="basic-del" onclick="deleteBasic(${i})">×</span>
-            </div>`;
+            const row = document.createElement('div');
+            row.className = 'basic-item';
+            row.title = 'Vink aan als je dit deze week nodig hebt';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = !!item.checked;
+            checkbox.addEventListener('change', () => toggleBasic(i));
+
+            const qty = document.createElement('input');
+            qty.type = 'number';
+            qty.className = 'basic-qty';
+            qty.value = item.qty;
+            qty.min = '1';
+            qty.addEventListener('change', () => updateBasicQty(i, qty.value));
+
+            const name = document.createElement('span');
+            name.style.flexGrow = '1';
+            name.style.marginLeft = '5px';
+            name.textContent = item.name;
+
+            const del = document.createElement('span');
+            del.className = 'basic-del';
+            del.textContent = 'x';
+            del.addEventListener('click', () => deleteBasic(i));
+
+            row.append(checkbox, qty, name, del);
+            list.appendChild(row);
         });
     }
 
@@ -317,23 +338,43 @@ const recipesDB = {
         const output = document.getElementById('shopping-list-content');
         output.innerHTML = '';
 
+        let checkboxIndex = 0;
         route.forEach(cat => {
             if(sorted[cat].length > 0) {
                 let catName = mapCategoryName(cat);
                 let catDiv = document.createElement('div');
-                catDiv.innerHTML = `<div class="category-header">${catName}</div>`;
+
+                const header = document.createElement('div');
+                header.className = 'category-header';
+                header.textContent = catName;
+                catDiv.appendChild(header);
                 
                 sorted[cat].forEach(item => {
                     let tag = getStoreTag(item.product);
                     let row = document.createElement('div');
                     row.className = "shopping-item";
-                    row.innerHTML = `
-                        <input type="checkbox" onchange="toggleLine(this)">
-                        <label onclick="this.previousElementSibling.click()">
-                            <span>${item.product}</span>
-                            ${tag ? tag.html : ''}
-                        </label>
-                    `;
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = `shop-item-${checkboxIndex++}`;
+                    checkbox.addEventListener('change', () => toggleLine(checkbox));
+
+                    const label = document.createElement('label');
+                    label.setAttribute('for', checkbox.id);
+
+                    const name = document.createElement('span');
+                    name.textContent = item.product;
+                    label.appendChild(name);
+
+                    if (tag) {
+                        const tagSpan = document.createElement('span');
+                        tagSpan.className = `store-tag ${tag.className}`;
+                        tagSpan.textContent = tag.text;
+                        label.appendChild(tagSpan);
+                    }
+
+                    row.appendChild(checkbox);
+                    row.appendChild(label);
                     catDiv.appendChild(row);
                 });
                 output.appendChild(catDiv);
@@ -351,16 +392,39 @@ const recipesDB = {
     function toggleCheckedItems() {
         let items = document.querySelectorAll('.shopping-item.checked');
         let btn = document.querySelector('.btn-toggle');
-        let currentlyHidden = btn.innerText.includes("Toon");
+        let shouldHide = btn.dataset.state !== 'hidden';
         
-        items.forEach(item => item.classList.toggle('hidden'));
+        items.forEach(item => item.classList.toggle('hidden', shouldHide));
         
-        if(currentlyHidden) btn.innerText = "👁️ Verberg wat ik al heb";
-        else btn.innerText = "👁️ Toon wat ik al heb";
+        btn.dataset.state = shouldHide ? 'hidden' : 'shown';
+        btn.innerText = shouldHide ? "Toon wat ik al heb" : "Verberg wat ik al heb";
+    }
+
+    function copyTextToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            return navigator.clipboard.writeText(text);
+        }
+        return new Promise((resolve, reject) => {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.top = '-1000px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                const ok = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                ok ? resolve() : reject(new Error('copy failed'));
+            } catch (err) {
+                document.body.removeChild(textarea);
+                reject(err);
+            }
+        });
     }
 
     function copyToClipboard() {
-        let text = "🛒 *Boodschappenlijst*\n\n";
+        let text = "*Boodschappenlijst*\n\n";
         let headers = document.querySelectorAll('.category-header');
         
         headers.forEach(header => {
@@ -382,8 +446,13 @@ const recipesDB = {
             if(hasItemsToBuy) text += catText + "\n";
         });
 
-        if(text === "🛒 *Boodschappenlijst*\n\n") alert("Alles is afgevinkt! Je hoeft niets te kopen.");
-        else navigator.clipboard.writeText(text).then(() => alert("Lijst gekopieerd!"));
+        if(text === "*Boodschappenlijst*\n\n") {
+            alert("Alles is afgevinkt! Je hoeft niets te kopen.");
+        } else {
+            copyTextToClipboard(text)
+                .then(() => alert("Lijst gekopieerd!"))
+                .catch(() => alert("Kopieren mislukt. Probeer handmatig te kopieren."));
+        }
     }
 
     function showBooklet() {
@@ -420,12 +489,12 @@ const recipesDB = {
 
     function getStoreTag(p) {
         p = p.toLowerCase();
-        if(p.includes("edelgist")||p.includes("tahin")) return {html: '<span class="store-tag tag-eko">EKO</span>', text: 'EKO'};
-        if(p.includes("wc")||p.includes("papier")||p.includes("courgette")) return {html: '<span class="store-tag tag-lidl">LIDL</span>', text: 'LIDL'};
+        if(p.includes("edelgist")||p.includes("tahin")) return {className: 'tag-eko', text: 'EKO'};
+        if(p.includes("wc")||p.includes("papier")||p.includes("courgette")) return {className: 'tag-lidl', text: 'LIDL'};
         return null;
     }
     function mapCategoryName(c) {
-        const map = {"AGF":"🥦 Groente & Fruit", "Vers/Koeling":"🥩 Vers & Vega", "Houdbaar":"🍝 Voorraadkast", "Zuivel/Koeling":"🥛 Zuivel", "Huishouden":"🧻 Huishouden"};
+        const map = {"AGF":"Groente & Fruit", "Vers/Koeling":"Vers & Vega", "Houdbaar":"Voorraadkast", "Zuivel/Koeling":"Zuivel", "Huishouden":"Huishouden"};
         return map[c] || c;
     }
 </script>
