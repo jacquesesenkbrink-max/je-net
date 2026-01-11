@@ -112,7 +112,7 @@
 <script>
     // --- 1. RECEPTEN DATABASE ---
 const recipesDB = {
-        // --- BESTAANDE RECEPTEN ---
+        // --- BESTAANDE RECEPTEN (Eerder toegevoegd) ---
         "Orzo Ratatouille": {
             ing: { "AGF": ["1 Rode paprika", "1 Gele paprika", "1 Aubergine", "1 Courgette", "1 Rode ui", "250g Cherrytomaatjes", "200g Spinazie", "2 tenen Knoflook", "Verse Basilicum"], "Houdbaar": ["300g Orzo", "1 blik Tomatenblokjes", "1 blik Kikkererwten", "1 el Tahin", "Pijnboompitten", "Groentebouillon", "Olijfolie", "Italiaanse kruiden"] },
             steps: ["Oven 200gr. Snijd groenten.", "Rooster groenten 30 min met olie/kruiden.", "Kook orzo met tomatenblokjes 8 min.", "Voeg tahin, spinazie, kikkererwten toe.", "Meng groenten erdoor."]
@@ -137,8 +137,6 @@ const recipesDB = {
             ing: { "AGF": ["1 Gele ui", "3 tenen Knoflook", "500g Honingtomaten", "Verse Basilicum"], "Houdbaar": ["300g Risotto rijst", "1 blik Tomatenblokjes", "700ml Groentebouillon", "Olijfolie"] },
             steps: ["Rooster tomaatjes.", "Fruit ui/knoflook, bak rijst mee.", "Voeg tomatenblokjes en bouillon stapsgewijs toe.", "Kook gaar, meng geroosterde tomaten erdoor."]
         },
-
-        // --- NIEUWE RECEPTEN UIT PDF ---
         "Noten-Vijgenbrood": {
             ing: { "Houdbaar": ["230g Speltbloem", "1 el Bakpoeder", "1 tl Kaneel", "30g Ahornsiroop", "70ml Kokosolie", "100g Walnoten", "100g Hazelnoten", "150g Gedroogde vijgen", "150g Medjouldadels", "60g Zonnebloempitten", "60g Pompoenpitten"], "AGF": ["50ml Citroensap"] },
             steps: ["Oven 180gr. Meng droge ingrediënten.", "Meng natte ingrediënten en voeg samen.", "Roer noten, vijgen en dadels erdoor.", "Giet in vorm, bestrooi met pitten.", "Bak 45-50 min."]
@@ -174,6 +172,52 @@ const recipesDB = {
         "Pina Colada Smoothie": {
             ing: { "AGF": ["2 Bananen"], "Diepvries": ["300g Bevroren ananas"], "Houdbaar": ["400ml Kokosmelk", "2 el Agavesiroop", "2 tl Hennepzaad", "Kurkumapoeder"] },
             steps: ["Doe alles in de blender.", "Mix tot glad en romig.", "Voeg kurkuma toe voor gele kleur."]
+        },
+
+        // --- NIEUWE RECEPTEN (PDF Deel 2) ---
+        "Toast met Tofu-Avocadospread": {
+            ing: { "AGF": ["1 Avocado", "1 teen Knoflook", "0.5 Citroen (sap)", "2 Vleestomaten", "Verse Basilicum", "Kiemgroenten (opt)"], "Vers/Koeling": ["200g Tofu"], "Houdbaar": ["4 sneden Volkorenbrood", "Edelgistvlokken", "Olijfolie"] },
+            steps: ["Prak avocado met tofu, citroensap en geperste knoflook tot spread.", "Maak kruidenolie van basilicum, knoflook en olie (vijzel).", "Rooster het brood goudbruin in pan of rooster.", "Beleg met spread, plakjes tomaat en de kruidenolie."]
+        },
+        "Warme Pompoen-Teffpap": {
+            ing: { "AGF": ["150g Pompoenpuree (of vers)", "2 Kaki's"], "Houdbaar": ["100g Teff-vlokken", "300ml Plantaardige melk", "40g Pecannoten", "1 tl Kaneel", "0.5 tl Kardemom", "1 tl Kokosolie", "Ahornsiroop"] },
+            steps: ["Kook teff met melk 5-7 min tot romig.", "Roer pompoenpuree, kardemom en kaneel erdoor. Verwarm kort.", "Bak kakiblokjes in kokosolie zacht. Rooster pecannoten.", "Serveer pap met kaki, noten en siroop."]
+        },
+        "Kokos Quinoa-Fruitsalade": {
+            ing: { "AGF": ["250g Aardbeien", "2 Kiwi's", "1 Mango", "250g Blauwe bessen", "Verse Munt", "2 el Limoensap"], "Houdbaar": ["200ml Kokosmelk (light)", "175g Quinoa", "75g Pecannoten", "2 el Tahin", "1 el Ahornsiroop"] },
+            steps: ["Kook quinoa in kokosmelk (met snuf zout) 15-20 min. Laat afkoelen.", "Maak dressing van tahin, ahornsiroop, limoensap (en beetje water).", "Rooster pecannoten. Snijd fruit.", "Meng quinoa met fruit, munt en noten. Giet dressing erover."]
+        },
+        "Masala Scrambled Tofu": {
+            ing: { "Vers/Koeling": ["300g Zijden tofu", "400g Stevige Tofu"], "AGF": ["3 Bosuitjes", "2 tenen Knoflook", "Verse Peterselie/Koriander"], "Houdbaar": ["150ml Sojamelk", "1.5 tl Kala Namak (zwart zout)", "2 tl Garam Masala", "1 tl Kurkuma", "Olijfolie"] },
+            steps: ["Blend zijden tofu glad. Fruit bosui en knoflook in pan.", "Voeg specerijen toe en bak kort. Voeg zijden tofu toe en roer.", "Verkruimel stevige tofu in de pan. Verwarm goed.", "Voeg evt. scheutje sojamelk toe voor smeuïgheid."]
+        },
+        "Limabonenstoof in Pesto": {
+            ing: { "AGF": ["1 Courgette", "2 Preien", "3 tenen Knoflook", "1 Citroen (rasp/sap)", "Verse Peterselie"], "Houdbaar": ["2 blikken Limabonen", "4 el Vegan Pesto", "400ml Groentebouillon", "250ml Plantaardige melk", "4 el Edelgistvlokken", "Olijfolie", "Chilivlokken"], "Vers/Koeling": [] },
+            steps: ["Bak courgette en prei 10 min. Bak knoflook kort mee.", "Roer pesto, bouillon en melk erdoor. Kook 5 min.", "Pureer deels. Voeg limabonen toe en sudder 10 min.", "Breng op smaak met citroen en peterselie."]
+        },
+        "Hartige Wentelteefjes": {
+            ing: { "AGF": ["200g Cherrytomaten", "150g Verse spinazie", "2 tenen Knoflook", "Verse Peterselie"], "Houdbaar": ["6 sneden Stevig brood", "70g Kikkererwtenmeel", "250ml Sojamelk", "1 blik Bruine linzen", "3 el Edelgistvlokken", "Maizena", "Misopasta", "Uienpoeder", "Knoflookpoeder"] },
+            steps: ["Klop beslag van sojamelk, meel, edelgist, maizena en kruiden.", "Wentel brood erdoor en bak goudbruin in pan.", "Topping: Bak knoflook, linzen, tomaten en spinazie tot geslonken.", "Serveer brood met de linzen-spinazie topping."]
+        },
+        "Udonnoedels Miso-Tahin": {
+            ing: { "AGF": ["400g Paddenstoelenmix", "5 Bosuitjes", "4 tenen Knoflook"], "Houdbaar": ["800g Udonnoedels (vers)", "2 el Mirin", "3 el Sojasaus", "1 el Misopasta", "2 el Tahin", "250ml Sojamelk", "Crispy Chili-olie", "Cashewnoten"] },
+            steps: ["Bak bosui, knoflook en paddenstoelen goudbruin.", "Mix mirin, soja, miso, tahin en melk tot saus.", "Giet saus in pan, laat indikken. Voeg udonnoedels toe.", "Verwarm goed door. Garneer met chili-olie en cashews."]
+        },
+        "Granenmixbowl Harissa": {
+            ing: { "AGF": ["2 Zoete aardappels", "100g Rucola", "1 Granaatappel (pitjes)", "1 Citroen (sap)", "Verse Koriander"], "Houdbaar": ["200g Granenmix (spelt/rijst)", "1 blik Bruine linzen", "50g Zonnebloempitten", "2 el Harissapasta", "Ahornsiroop", "Komijnpoeder"] },
+            steps: ["Oven 180gr. Meng aardappelblokjes met harissa, olie, komijn. Bak 30-35 min.", "Kook granenmix. Rooster zonnebloempitten.", "Maak dressing van citroen, ahorn en olie.", "Meng granen, linzen, rucola en aardappel. Giet dressing erover."]
+        },
+        "Limabonenspread op Naan": {
+            ing: { "AGF": ["1 Courgette", "1 teen Knoflook", "1 Citroen (sap)", "Verse Peterselie"], "Houdbaar": ["4 Naanbroodjes", "1 blik Limabonen", "2 el Tahin", "1 tl Komijnzaad", "1 el Za'atar", "50g Amandelen"] },
+            steps: ["Bak naanbroodjes af (oven/pan).", "Blend limabonen, tahin, knoflook, citroen en komijn tot hummus.", "Bak courgetteplakjes goudbruin, bestrooi met za'atar.", "Besmeer naan met spread, beleg met courgette en geroosterde amandelen."]
+        },
+        "Bourguignon Gerookte Tofu": {
+            ing: { "Vers/Koeling": ["600g Gerookte tofu"], "AGF": ["300g Rode bieten", "3 Wortels", "1 Grote ui", "4 tenen Knoflook", "400g Oesterzwammen", "Verse Peterselie", "Verse Tijm"], "Houdbaar": ["4 plakken Ontbijtkoek", "150ml Rode wijn", "500ml Groentebouillon", "2 el Tomatenpuree", "Gerookt paprikapoeder", "Maizena", "Laurierblaadjes"] },
+            steps: ["Fruit ui, knoflook, biet en wortel. Bak tomatenpuree mee.", "Blus met wijn en bouillon. Voeg kruiden toe. Stoof 1 uur.", "Roer verkruimelde ontbijtkoek erdoor (bindt saus).", "Bak tofu en oesterzwammen apart goudbruin. Voeg toe aan stoof."]
+        },
+        "Triple Peulvruchtencurry": {
+            ing: { "Vers/Koeling": ["500g Tofu"], "AGF": ["1 Bloemkool", "1 Grote ui", "4 tenen Knoflook", "2cm Gember", "150g Verse Spinazie", "1 Citroen", "Verse Peterselie"], "Houdbaar": ["1 blik Limabonen", "1 blik Kikkererwten", "1 el Tomatenpuree", "500ml Groentebouillon", "125ml Sojamelk", "2 el Amandelpasta", "20g Edelgistvlokken", "Kerriepoeder", "Maizena"] },
+            steps: ["Oven 200gr. Meng tofu met maizena/kerrie. Bak tofu en bloemkool 30 min.", "Fruit ui, knoflook, gember en currypasta. Voeg bouillon toe.", "Blend limabonen, melk, amandelpasta en edelgist tot romige saus.", "Meng saus in pan. Voeg kikkererwten en spinazie toe. Schep tofu/bloemkool erdoor."]
         }
     };
     const daysOfWeek = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"];
