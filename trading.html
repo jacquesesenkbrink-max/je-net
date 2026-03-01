@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daytrader Dagindeling</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #38bdf8;
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --success: #22c55e;
+            --border: #334155;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .top-actions {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .protocol-btn {
+            display: inline-block;
+            text-decoration: none;
+            background: linear-gradient(90deg, #0ea5e9, #6366f1);
+            color: #f8fafc;
+            font-weight: 600;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 8px 20px rgba(14,165,233,0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .protocol-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(99,102,241,0.25);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            letter-spacing: -0.025em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+            border-left: 2px solid var(--border);
+        }
+
+        .event {
+            position: relative;
+            margin-bottom: 40px;
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: transform 0.2s ease;
+        }
+
+        .event:hover {
+            transform: translateX(5px);
+            border-color: var(--accent-color);
+        }
+
+        .event::before {
+            content: "";
+            position: absolute;
+            left: -41px;
+            top: 28px;
+            width: 20px;
+            height: 20px;
+            background: var(--bg-color);
+            border: 3px solid var(--accent-color);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .time-badge {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent-color);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        h2 {
+            margin: 0 0 12px 0;
+            font-size: 1.4rem;
+            color: var(--text-main);
+        }
+
+        ul {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--text-dim);
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        strong {
+            color: var(--text-main);
+        }
+
+        .quote-card {
+            margin-top: 60px;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.05), rgba(129, 140, 248, 0.05));
+            border-radius: 12px;
+            border: 1px dashed var(--accent-color);
+            text-align: center;
+            font-style: italic;
+        }
+
+        .quote-card p {
+            font-size: 1.2rem;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-actions">
+        <a class="protocol-btn" href="apex-trading-protocol.html">Open Apex Protocol</a>
+    </div>
+
+    <header>
+        <h1>De Daily Routine</h1>
+        <p class="subtitle">Discipline. Executie. Herhaling.</p>
+    </header>
+
+    <div class="timeline">
+        <div class="event">
+            <span class="time-badge">07:30 - 09:00</span>
+            <h2>De Voorbereiding</h2>
+            <ul>
+                <li><strong>Macro-check:</strong> Analyse van wereldwijd nieuws en indices.</li>
+                <li><strong>Kalender:</strong> Markeren van belangrijke economische data (CPI/PPI).</li>
+                <li><strong>Watchlist:</strong> Levels tekenen (S&D zones) op 3 tot 5 instrumenten.</li>
+            </ul>
+        </div>
+
+        <div class="event">
+            <span class="time-badge">09:00 - 11:30</span>
+            <h2>De Openingsstorm</h2>
+            <ul>
+                <li><strong>Geduld:</strong> Wachten tot de initiële volatiliteit een trend vormt.</li>
+                <li><strong>Executie:</strong> Instappen op bevestigde setups en retests.</li>
+                <li><strong>Risico:</strong> Stop-loss direct plaatsen; kapitaalbehoud is prioriteit #1.</li>
+            </ul>
+        </div>
+
+        <div class="event">
+            <span class="time-badge">11:30 - 14:00</span>
+            <h2>De Mentale Reset</h2>
+            <ul>
+                <li><strong>Afstand:</strong> Schermen uit om overtrading te voorkomen.</li>
+                <li><strong>Herstel:</strong> Lunch en beweging om cognitieve frisheid te behouden.</li>
+                <li><strong>Review:</strong> Korte reflectie op de ochtendtrades.</li>
+            </ul>
+        </div>
+
+        <div class="event">
+            <span class="time-badge">14:00 - 17:30</span>
+            <h2>US Open & Close</h2>
+            <ul>
+                <li><strong>Liquiditeit:</strong> Inspelen op het volume van Wall Street (15:30).</li>
+                <li><strong>Tweede Kans:</strong> Profiteren van trendvoortzettingen of reversals.</li>
+                <li><strong>Flat:</strong> Alle posities sluiten voor de bel; geen overnight risico.</li>
+            </ul>
+        </div>
+
+        <div class="event" style="border-bottom: 1px solid var(--border);">
+            <span class="time-badge">17:30 - 18:30</span>
+            <h2>De Nabeschouwing</h2>
+            <ul>
+                <li><strong>Journaling:</strong> Elke trade vastleggen inclusief screenshots.</li>
+                <li><strong>Psychologie:</strong> Emotionele staat tijdens trades analyseren.</li>
+                <li><strong>Statistiek:</strong> Controleren of de edge nog steeds aanwezig is.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="quote-card">
+        <p>"Trading is een saaie bezigheid voor mensen die op zoek zijn naar spanning, maar een spannende bezigheid voor mensen die op zoek zijn naar een consistent inkomen."</p>
+    </div>
+
+    <footer>
+        &copy; 2026 Pro Trader Dashboard - Stay disciplined.
+    </footer>
+</div>
+
+</body>
+</html>
