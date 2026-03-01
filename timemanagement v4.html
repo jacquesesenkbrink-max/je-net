@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Mijn Focus Planner V2.3 (Crash Proof)</title>
+    <title>Mijn Focus Planner V2.4 (Undo/Redo)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -110,12 +110,122 @@
             touch-action: pan-y;
         }
 
+        .task-main {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .task-tag {
+            flex: 0 0 56px;
+            text-align: center;
+        }
+
+        .task-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .task-text strong {
+            display: block;
+            word-break: break-word;
+        }
+
         .tag {
             font-size: 0.7em; padding: 3px 6px; border-radius: 4px; 
             color: white; font-weight: bold; margin-right: 8px; 
             text-transform: uppercase; letter-spacing: 0.5px;
             vertical-align: middle;
         }
+
+        .task-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .time-input {
+            width: 56px;
+            padding: 6px 8px;
+            font-size: 0.8em;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .total-time {
+            margin: 10px 0 15px 0;
+            padding: 10px;
+            background: #f3f6f8;
+            border-radius: 8px;
+            color: #444;
+            font-size: 0.9em;
+        }
+
+        .start-time {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 0 0 10px 0;
+            padding: 10px;
+            background: #f7f9fb;
+            border-radius: 8px;
+            border: 1px solid #e7edf2;
+        }
+
+        .start-time input[type="time"] {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 4px 6px;
+            font-size: 0.9em;
+        }
+
+        .break-wrapper {
+            margin: 12px 0 10px 0;
+            padding: 10px;
+            background: #f7f9fb;
+            border-radius: 10px;
+            border: 1px solid #e7edf2;
+        }
+
+        .break-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .break-card {
+            background: #fef9e7;
+            border: 1px solid #f2e0a5;
+        }
+
+        .btn-add-break {
+            border: none;
+            border-radius: 6px;
+            padding: 6px 10px;
+            background: #d9f0ff;
+            color: #0b4d7a;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+        .btn-add-break:active { background: #c7e6ff; }
+
+        .btn-edit {
+            border: none;
+            border-radius: 6px;
+            padding: 4px 8px;
+            background: #eef2f5;
+            color: #333;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+        .btn-edit:active { background: #dfe5ea; }
 
         /* --- IDEEËN LIJST STIJLEN --- */
         .idea-item {
@@ -154,8 +264,45 @@
         .q3 { border-color: var(--q3-border); background: var(--q3-bg); }
         .q4 { border-color: var(--q4-border); background: var(--q4-bg); opacity: 0.8; }
 
-        .q-title { font-weight: 800; display: flex; justify-content: space-between; margin-bottom: 10px; color: #444; }
+        .q-title { font-weight: 800; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #444; gap: 8px; }
         .q-sub { font-weight: normal; font-size: 0.8em; opacity: 0.7; }
+
+        .btn-collapse {
+            border: none;
+            border-radius: 6px;
+            padding: 4px 8px;
+            background: #eef2f5;
+            color: #333;
+            cursor: pointer;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+        .btn-collapse:active { background: #dfe5ea; }
+        .matrix-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f7f9fb;
+            border: 1px solid #e7edf2;
+            border-radius: 10px;
+        }
+        .matrix-collapsed .matrix-wrapper { display: none; }
+
+        .ideas-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f7f9fb;
+            border: 1px solid #e7edf2;
+            border-radius: 10px;
+        }
+        .ideas-collapsed #ideas-content { display: none; }
         
         .matrix-task-item {
             background: rgba(255,255,255,0.7);
@@ -170,7 +317,7 @@
 
         /* --- CONTROLS / BACKUP BUTTONS --- */
         .control-panel {
-            margin-top: 25px;
+            margin-top: 15px;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -193,6 +340,18 @@
         .btn-save { background: #28a745; color: white; }
         .btn-load { background: #17a2b8; color: white; }
         .btn-paste { background: #6c757d; color: white; }
+        
+        /* Undo / Redo knoppen */
+        .undo-redo-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        .btn-undo { background: #5a6268; color: white; flex: 1; opacity: 0.5; pointer-events: none; }
+        .btn-redo { background: #5a6268; color: white; flex: 1; opacity: 0.5; pointer-events: none; }
+        .active-history-btn { opacity: 1; pointer-events: auto; background: #6c757d; }
+        .active-history-btn:active { background: #545b62; }
+
 
         /* --- PASTE AREA --- */
         #pasteAreaContainer {
@@ -226,6 +385,7 @@
             
             .control-panel { flex-direction: row; flex-wrap: wrap; }
             .btn-backup { flex: 1; }
+            .undo-redo-container { width: 100%; }
         }
     </style>
 </head>
@@ -260,9 +420,29 @@
             </div>
 
             <h2 style="margin-top:0; font-size: 1.2rem;">🚀 Actie Lijst</h2>
+            <div class="start-time">
+                <span>Starttijd</span>
+                <input type="time" id="startTimeInput" data-step="1" onchange="setStartTime(this.value)">
+            </div>
+            <div id="totalTime" class="total-time">Totaal: 0 min</div>
+            <div class="break-wrapper">
+                <div class="break-header">
+                    <span style="font-weight:600;">⏸ Pauzes</span>
+                    <button type="button" class="btn-add-break" onclick="addBreak()">+ Pauze</button>
+                </div>
+            </div>
             <div id="smartList"><ol style="padding-left:0; list-style:none; min-height: 50px;" id="action-list-ol"></ol></div>
             
-            <div class="control-panel">
+            <div class="control-panel" style="margin-top: 25px;">
+                <div class="undo-redo-container">
+                    <button id="btnUndo" onclick="undo()" class="btn-backup btn-undo" title="Ongedaan maken (Ctrl+Z)">
+                        ↩️ Undo
+                    </button>
+                    <button id="btnRedo" onclick="redo()" class="btn-backup btn-redo" title="Opnieuw uitvoeren (Ctrl+Y)">
+                        ↪️ Redo
+                    </button>
+                </div>
+                
                 <button type="button" onclick="clearAll()" class="btn-backup btn-clear">
                     ♻️ Wissen
                 </button>
@@ -297,40 +477,51 @@
             </div>
 
             <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee;">
-                <h3 style="margin-top:0; font-size: 1.1rem; color: var(--accent-color);">💡 Ideeën & Notities</h3>
-                <div style="display:flex; gap:5px; margin-bottom:10px;">
-                    <input type="text" id="ideaInput" placeholder="Nieuw idee..." onkeypress="handleIdeaEnter(event)">
-                    <button type="button" onclick="addIdea()" style="width:auto; padding:0 15px; background:#f0ad4e; color:white; border:none; border-radius:6px; font-weight:bold;">+</button>
+                <div class="ideas-toggle">
+                    <span style="font-weight:600; color: var(--accent-color);">💡 Ideeën & Notities</span>
+                    <button type="button" class="btn-collapse" onclick="toggleIdeas()" id="btnToggleIdeas">Verbergen</button>
                 </div>
-                <div id="ideaContainer" style="min-height: 50px;">
+                <div id="ideas-content">
+                    <div style="display:flex; gap:5px; margin-bottom:10px;">
+                        <input type="text" id="ideaInput" placeholder="Nieuw idee..." onkeypress="handleIdeaEnter(event)">
+                        <button type="button" onclick="addIdea()" style="width:auto; padding:0 15px; background:#f0ad4e; color:white; border:none; border-radius:6px; font-weight:bold;">+</button>
                     </div>
+                    <div id="ideaContainer" style="min-height: 50px;">
+                        </div>
+                </div>
             </div>
         </div>
 
-        <div class="matrix-wrapper">
+        <div>
+            <div class="matrix-toggle">
+                <span style="font-weight:600;">📋 Prioritering</span>
+                <button type="button" class="btn-collapse" onclick="toggleMatrix()" id="btnToggleMatrix">Verbergen</button>
+            </div>
+            <div class="matrix-wrapper">
             <div></div> <div class="label-top">Urgent</div> <div class="label-top">Niet Urgent</div>
             <div class="label-side">Belangrijk</div>
             
             <div class="quadrant q1" id="box-q1">
-                <div class="q-title">DOEN <span class="q-sub">Nu / Crisis</span></div>
+                <div class="q-title"><span>DOEN <span class="q-sub">Nu / Crisis</span></span></div>
                 <div class="task-container" data-q="1"></div>
             </div>
 
             <div class="quadrant q2" id="box-q2">
-                <div class="q-title">PLANNEN <span class="q-sub">Strategie</span></div>
+                <div class="q-title"><span>PLANNEN <span class="q-sub">Strategie</span></span></div>
                 <div class="task-container" data-q="2"></div>
             </div>
 
             <div class="label-side">Niet Belangrijk</div>
 
             <div class="quadrant q3" id="box-q3">
-                <div class="q-title">DELEGEREN <span class="q-sub">Ruis</span></div>
+                <div class="q-title"><span>DELEGEREN <span class="q-sub">Ruis</span></span></div>
                 <div class="task-container" data-q="3"></div>
             </div>
 
             <div class="quadrant q4" id="box-q4">
-                <div class="q-title">ELIMINEREN <span class="q-sub">Weg</span></div>
+                <div class="q-title"><span>ELIMINEREN <span class="q-sub">Weg</span></span></div>
                 <div class="task-container" data-q="4"></div>
+            </div>
             </div>
         </div>
 
@@ -370,6 +561,158 @@
         // --- DATA BEHEER ---
         let tasks = JSON.parse(localStorage.getItem('eisenhowerTasksMobile')) || [];
         let ideas = JSON.parse(localStorage.getItem('eisenhowerIdeas')) || [];
+        let breaks = JSON.parse(localStorage.getItem('eisenhowerBreaks')) || [];
+        let actionOrder = JSON.parse(localStorage.getItem('eisenhowerActionOrder')) || [];
+        
+        // --- HISTORY (UNDO/REDO) BEHEER ---
+        let historyStack = [];
+        let redoStack = [];
+        const MAX_HISTORY = 50;
+
+        function saveState() {
+            // Maak een 'diepe' kopie van de huidige staat en bewaar deze
+            const state = {
+                tasks: JSON.parse(JSON.stringify(tasks)),
+                ideas: JSON.parse(JSON.stringify(ideas)),
+                breaks: JSON.parse(JSON.stringify(breaks)),
+                actionOrder: JSON.parse(JSON.stringify(actionOrder))
+            };
+            
+            historyStack.push(state);
+            if(historyStack.length > MAX_HISTORY) historyStack.shift();
+            
+            // Wanneer we een nieuwe actie doen, is de 'toekomst' (redo) niet meer geldig
+            redoStack = []; 
+            updateHistoryUI();
+        }
+
+        function undo() {
+            if(historyStack.length === 0) return;
+
+            // Huidige staat bewaren in Redo stack voor het geval we terug willen
+            const currentState = {
+                tasks: JSON.parse(JSON.stringify(tasks)),
+                ideas: JSON.parse(JSON.stringify(ideas)),
+                breaks: JSON.parse(JSON.stringify(breaks)),
+                actionOrder: JSON.parse(JSON.stringify(actionOrder))
+            };
+            redoStack.push(currentState);
+
+            // Vorige staat ophalen
+            const prevState = historyStack.pop();
+            tasks = prevState.tasks;
+            ideas = prevState.ideas;
+            breaks = prevState.breaks || [];
+            actionOrder = prevState.actionOrder || [];
+
+            saveTasks();
+            saveIdeas();
+            saveBreaks();
+            saveActionOrder();
+            render();
+            renderIdeas();
+            updateHistoryUI();
+        }
+
+        function redo() {
+            if(redoStack.length === 0) return;
+
+            // Huidige staat bewaren in History stack
+            const currentState = {
+                tasks: JSON.parse(JSON.stringify(tasks)),
+                ideas: JSON.parse(JSON.stringify(ideas)),
+                breaks: JSON.parse(JSON.stringify(breaks)),
+                actionOrder: JSON.parse(JSON.stringify(actionOrder))
+            };
+            historyStack.push(currentState);
+
+            // Volgende staat ophalen
+            const nextState = redoStack.pop();
+            tasks = nextState.tasks;
+            ideas = nextState.ideas;
+            breaks = nextState.breaks || [];
+            actionOrder = nextState.actionOrder || [];
+
+            saveTasks();
+            saveIdeas();
+            saveBreaks();
+            saveActionOrder();
+            render();
+            renderIdeas();
+            updateHistoryUI();
+        }
+
+        function updateHistoryUI() {
+            const btnUndo = document.getElementById('btnUndo');
+            const btnRedo = document.getElementById('btnRedo');
+            
+            if(historyStack.length > 0) {
+                btnUndo.classList.add('active-history-btn');
+            } else {
+                btnUndo.classList.remove('active-history-btn');
+            }
+
+            if(redoStack.length > 0) {
+                btnRedo.classList.add('active-history-btn');
+            } else {
+                btnRedo.classList.remove('active-history-btn');
+            }
+        }
+        
+        // Sneltoetsen luisteren
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                undo();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+                e.preventDefault();
+                redo();
+            }
+        });
+
+        // Muiswiel voor tijd-inputs
+        document.addEventListener('wheel', function(e) {
+            const target = e.target;
+            if (!target) return;
+
+            const isTimeInput = target.classList && target.classList.contains('time-input');
+            const isStartTime = target.id === 'startTimeInput';
+            if (!isTimeInput && !isStartTime) return;
+
+            e.preventDefault();
+            const dir = e.deltaY < 0 ? 1 : -1;
+
+            if (isStartTime) {
+                const stepMinutes = parseInt(target.getAttribute('data-step') || '5', 10);
+                const start = target.value || '00:00';
+                const parts = start.split(':');
+                if (parts.length !== 2) return;
+                const h = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10);
+                if (!Number.isFinite(h) || !Number.isFinite(m)) return;
+                const next = (h * 60) + m + (dir * stepMinutes);
+                const nextText = formatMinutesToTime(next);
+                target.value = nextText;
+                setStartTime(nextText);
+                return;
+            }
+
+            const step = parseInt(target.step || 1, 10);
+            const current = parseInt(target.value || 0, 10);
+            const nextVal = Math.max(0, current + (dir * step));
+            target.value = nextVal;
+
+            const kind = target.getAttribute('data-kind');
+            const id = parseInt(target.getAttribute('data-id'), 10);
+            if (kind === 'task') {
+                updateTaskDuration(id, nextVal);
+            } else if (kind === 'break') {
+                updateBreakMinutes(id, nextVal);
+            }
+        }, { passive: false });
+
+        // --- EINDE HISTORY BEHEER ---
 
         function saveTasks() {
             localStorage.setItem('eisenhowerTasksMobile', JSON.stringify(tasks));
@@ -377,6 +720,14 @@
 
         function saveIdeas() {
             localStorage.setItem('eisenhowerIdeas', JSON.stringify(ideas));
+        }
+
+        function saveBreaks() {
+            localStorage.setItem('eisenhowerBreaks', JSON.stringify(breaks));
+        }
+
+        function saveActionOrder() {
+            localStorage.setItem('eisenhowerActionOrder', JSON.stringify(actionOrder));
         }
 
         function handleEnter(e) { if (e.key === 'Enter') addTask(); }
@@ -389,7 +740,9 @@
 
             if (!text.trim()) return;
 
-            tasks.push({ id: Date.now(), text, q, p });
+            saveState(); // SAVE FOR UNDO
+
+            tasks.push({ id: Date.now(), text, q, p, duration: 0 });
             document.getElementById('taskInput').value = '';
             
             saveTasks();
@@ -399,6 +752,9 @@
         function addIdea() {
             const text = document.getElementById('ideaInput').value;
             if (!text.trim()) return;
+            
+            saveState(); // SAVE FOR UNDO
+
             ideas.push({ id: Date.now(), text });
             document.getElementById('ideaInput').value = '';
             saveIdeas();
@@ -406,12 +762,45 @@
         }
 
         function removeTask(id) {
+            saveState(); // SAVE FOR UNDO
             tasks = tasks.filter(t => t.id !== id);
             saveTasks();
             render();
         }
 
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+
+            const newText = prompt("Pas taak aan:", task.text);
+            if (newText === null) return;
+            if (!newText.trim()) return;
+
+            saveState(); // SAVE FOR UNDO
+            task.text = newText.trim();
+            saveTasks();
+            render();
+        }
+
+        function addBreak() {
+            saveState(); // SAVE FOR UNDO
+            const id = Date.now();
+            breaks.push({ id, minutes: 15 });
+            actionOrder = [{ type: 'break', id }, ...actionOrder];
+            saveBreaks();
+            saveActionOrder();
+            render();
+        }
+
+        function removeBreak(id) {
+            saveState(); // SAVE FOR UNDO
+            breaks = breaks.filter(b => b.id !== id);
+            saveBreaks();
+            render();
+        }
+
         function removeIdea(id) {
+            saveState(); // SAVE FOR UNDO
             ideas = ideas.filter(i => i.id !== id);
             saveIdeas();
             renderIdeas();
@@ -419,8 +808,15 @@
 
         function clearAll() {
             if(confirm("Weet je zeker dat je alles wilt wissen voor een nieuwe dag?")) {
+                saveState(); // SAVE FOR UNDO
                 tasks = [];
+                breaks = [];
+                actionOrder = [];
+                // Ideas wissen we meestal niet bij een nieuwe dag, maar in deze functie wel
+                // Als je wilt dat ideeën blijven staan, haal dan de volgende regel weg in de clear logica (maar voor undo moet de state wel kloppen)
                 localStorage.removeItem('eisenhowerTasksMobile'); 
+                localStorage.removeItem('eisenhowerBreaks');
+                localStorage.removeItem('eisenhowerActionOrder');
                 render();
             }
         }
@@ -429,10 +825,12 @@
         
         function exportData() {
             const backup = {
-                version: "2.3",
+                version: "2.4",
                 timestamp: new Date().toISOString(),
                 tasks: tasks,
-                ideas: ideas
+                ideas: ideas,
+                breaks: breaks,
+                actionOrder: actionOrder
             };
             const dataStr = JSON.stringify(backup, null, 2);
             const blob = new Blob([dataStr], { type: "application/json" });
@@ -457,15 +855,12 @@
             const file = inputElement.files[0];
             if (!file) return;
 
-            // We gebruiken een timeout om de UI thread van de browser te laten rusten 
-            // nadat de file dialog sluit. Dit voorkomt vaak crashes in Edge.
             setTimeout(() => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     processJSON(e.target.result);
                 };
                 reader.readAsText(file);
-                // Reset input
                 inputElement.value = '';
             }, 500);
         }
@@ -489,10 +884,15 @@
                 
                 if (data && Array.isArray(data.tasks)) {
                     if(confirm(`Gegevens gevonden van ${data.timestamp ? data.timestamp.slice(0,10) : '?'}. Overschrijven?`)) {
+                        saveState(); // SAVE FOR UNDO (Even the import can be undone!)
                         tasks = data.tasks;
                         ideas = Array.isArray(data.ideas) ? data.ideas : [];
+                        breaks = Array.isArray(data.breaks) ? data.breaks : [];
+                        actionOrder = Array.isArray(data.actionOrder) ? data.actionOrder : [];
                         saveTasks();
                         saveIdeas();
+                        saveBreaks();
+                        saveActionOrder();
                         render();
                         renderIdeas();
                         alert("✅ Succesvol ingeladen!");
@@ -511,6 +911,140 @@
             if(q==3) return '#e6b800'; return '#999'; 
         }
 
+        function updateTaskDuration(id, value) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+
+            const nextVal = Math.max(0, parseInt(value || 0, 10));
+            if (task.duration === nextVal) return;
+
+            saveState(); // SAVE FOR UNDO
+            task.duration = nextVal;
+            saveTasks();
+            render();
+        }
+
+        function updateBreakMinutes(id, value) {
+            const pause = breaks.find(b => b.id === id);
+            if (!pause) return;
+
+            const nextVal = Math.max(0, parseInt(value || 0, 10));
+            if (pause.minutes === nextVal) return;
+
+            saveState(); // SAVE FOR UNDO
+            pause.minutes = nextVal;
+            saveBreaks();
+            render();
+        }
+
+        function updateTotalTime() {
+            const totalEl = document.getElementById('totalTime');
+            if (!totalEl) return;
+
+            let work = 0;
+            let pause = 0;
+            tasks.filter(t => t.q !== 4).forEach(t => {
+                work += Number.isFinite(t.duration) ? t.duration : 0;
+            });
+            breaks.forEach(b => {
+                pause += Number.isFinite(b.minutes) ? b.minutes : 0;
+            });
+            const total = work + pause;
+            const start = getStartTimeMinutes();
+            const end = start === null ? null : start + total;
+            const endText = end === null ? '--:--' : formatMinutesToTime(end);
+            totalEl.innerText = `Werk: ${work} min • Pauze: ${pause} min • Totaal: ${total} min • Klaar: ${endText}`;
+        }
+
+        function getStartTimeMinutes() {
+            const stored = localStorage.getItem('startTime');
+            if (!stored) return null;
+            const parts = stored.split(':');
+            if (parts.length !== 2) return null;
+            const h = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10);
+            if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+            return (h * 60) + m;
+        }
+
+        function formatMinutesToTime(totalMinutes) {
+            const minutes = ((totalMinutes % 1440) + 1440) % 1440;
+            const h = Math.floor(minutes / 60);
+            const m = minutes % 60;
+            const hh = String(h).padStart(2, '0');
+            const mm = String(m).padStart(2, '0');
+            return `${hh}:${mm}`;
+        }
+
+        function setStartTime(value) {
+            if (!value) return;
+            localStorage.setItem('startTime', value);
+            updateTotalTime();
+        }
+
+        function initStartTime() {
+            const input = document.getElementById('startTimeInput');
+            if (!input) return;
+
+            let stored = localStorage.getItem('startTime');
+            if (!stored) {
+                const now = new Date();
+                const hh = String(now.getHours()).padStart(2, '0');
+                const mm = String(now.getMinutes()).padStart(2, '0');
+                stored = `${hh}:${mm}`;
+                localStorage.setItem('startTime', stored);
+            }
+            input.value = stored;
+        }
+
+        function applyMatrixState(collapsed) {
+            if (collapsed) {
+                document.body.classList.add('matrix-collapsed');
+                const btn = document.getElementById('btnToggleMatrix');
+                if (btn) btn.innerText = 'Tonen';
+            } else {
+                document.body.classList.remove('matrix-collapsed');
+                const btn = document.getElementById('btnToggleMatrix');
+                if (btn) btn.innerText = 'Verbergen';
+            }
+        }
+
+        function toggleMatrix() {
+            const current = localStorage.getItem('matrixCollapsed') === 'true';
+            const next = !current;
+            localStorage.setItem('matrixCollapsed', next ? 'true' : 'false');
+            applyMatrixState(next);
+        }
+
+        function initMatrixCollapse() {
+            const collapsed = localStorage.getItem('matrixCollapsed') === 'true';
+            applyMatrixState(collapsed);
+        }
+
+        function applyIdeasState(collapsed) {
+            if (collapsed) {
+                document.body.classList.add('ideas-collapsed');
+                const btn = document.getElementById('btnToggleIdeas');
+                if (btn) btn.innerText = 'Tonen';
+            } else {
+                document.body.classList.remove('ideas-collapsed');
+                const btn = document.getElementById('btnToggleIdeas');
+                if (btn) btn.innerText = 'Verbergen';
+            }
+        }
+
+        function toggleIdeas() {
+            const current = localStorage.getItem('ideasCollapsed') === 'true';
+            const next = !current;
+            localStorage.setItem('ideasCollapsed', next ? 'true' : 'false');
+            applyIdeasState(next);
+        }
+
+        function initIdeasCollapse() {
+            const collapsed = localStorage.getItem('ideasCollapsed') === 'true';
+            applyIdeasState(collapsed);
+        }
+
         // --- RENDERING & SORTING LOGICA ---
 
         function render() {
@@ -519,47 +1053,134 @@
             if(listEl) listEl.innerHTML = '';
 
             if(!tasks || !Array.isArray(tasks)) { tasks = []; }
+            if(!breaks || !Array.isArray(breaks)) { breaks = []; }
+            if(!actionOrder || !Array.isArray(actionOrder)) { actionOrder = []; }
 
+            let hadDefaults = false;
             tasks.forEach(t => {
+                const duration = Number.isFinite(t.duration) ? t.duration : 0;
+                if (t.duration !== duration) {
+                    t.duration = duration;
+                    hadDefaults = true;
+                }
+
                 // MATRIX
                 const div = document.createElement('div');
                 div.className = 'matrix-task-item draggable-item';
                 div.setAttribute('data-id', t.id);
-                div.innerHTML = `<span>${t.text} <small style='color:#888'>${getStar(t.p)}</small></span> <span onclick="removeTask(${t.id})" style="color:#c00; font-weight:bold; cursor:pointer; padding-left:10px;">×</span>`;
+                div.innerHTML = `
+                    <span>${t.text} <small style='color:#888'>${getStar(t.p)}</small></span>
+                    <span class="task-actions">
+                        <button type="button" class="btn-edit" onclick="editTask(${t.id})">Bewerk</button>
+                        <span onclick="removeTask(${t.id})" style="color:#c00; font-weight:bold; cursor:pointer; padding-left:6px;">×</span>
+                    </span>
+                `;
                 
                 const container = document.querySelector(`.task-container[data-q="${t.q}"]`);
                 if(container) container.appendChild(div);
 
-                // LIJST
-                if(t.q !== 4 && listEl) {
-                    const li = document.createElement('li');
-                    li.className = 'task-card draggable-item';
-                    li.setAttribute('data-id', t.id);
-                    li.style.borderLeft = `5px solid ${getColor(t.q)}`;
-                    
-                    const qLabel = t.q === 1 ? "DOEN" : t.q === 2 ? "PLAN" : "DEL";
-                    const bg = getColor(t.q);
-
-                    li.innerHTML = `
-                        <div style="flex-grow:1; pointer-events:none;">
-                            <span class="tag" style="background:${bg}">${qLabel}</span>
-                            <strong>${t.text}</strong>
-                        </div>
-                        <div style="min-width: 50px; text-align:right;">
-                            <small style="color:#666; display:block;">${getStar(t.p)}</small>
-                            <span onclick="removeTask(${t.id})" style="color:#c00; font-size:1.2em; font-weight:bold; cursor:pointer;">×</span>
-                        </div>
-                    `;
-                    listEl.appendChild(li);
-                }
             });
 
-            if (listEl && tasks.filter(t => t.q !== 4).length === 0) {
-                listEl.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">Nog geen taken vandaag.</div>';
+            // Actielijst (taken + pauzes)
+            if (listEl) {
+                const taskMap = new Map(tasks.filter(t => t.q !== 4).map(t => [t.id, t]));
+                const breakMap = new Map(breaks.map(b => [b.id, b]));
+                const nextOrder = [];
+
+                actionOrder.forEach(item => {
+                    if (item.type === 'task' && taskMap.has(item.id)) nextOrder.push(item);
+                    if (item.type === 'break' && breakMap.has(item.id)) nextOrder.push(item);
+                });
+
+                taskMap.forEach((t, id) => {
+                    if (!nextOrder.find(i => i.type === 'task' && i.id === id)) {
+                        nextOrder.push({ type: 'task', id });
+                    }
+                });
+                breakMap.forEach((b, id) => {
+                    if (!nextOrder.find(i => i.type === 'break' && i.id === id)) {
+                        nextOrder.push({ type: 'break', id });
+                    }
+                });
+
+                if (JSON.stringify(nextOrder) !== JSON.stringify(actionOrder)) {
+                    actionOrder = nextOrder;
+                    saveActionOrder();
+                }
+
+                let runningTotal = 0;
+                actionOrder.forEach(item => {
+                    if (item.type === 'task') {
+                        const t = taskMap.get(item.id);
+                        if (!t) return;
+                        const taskMinutes = Number.isFinite(t.duration) ? t.duration : 0;
+                        runningTotal += taskMinutes;
+                        const li = document.createElement('li');
+                        li.className = 'task-card draggable-item';
+                        li.setAttribute('data-id', t.id);
+                        li.setAttribute('data-type', 'task');
+                        li.style.borderLeft = `5px solid ${getColor(t.q)}`;
+                        
+                        const qLabel = t.q === 1 ? "DOEN" : t.q === 2 ? "PLAN" : "DEL";
+                        const bg = getColor(t.q);
+
+                        li.innerHTML = `
+                            <div class="task-main" style="pointer-events:none;">
+                                <span class="tag task-tag" style="background:${bg}">${qLabel}</span>
+                                <div class="task-text">
+                                    <strong>${t.text}</strong>
+                                </div>
+                            </div>
+                            <div class="task-actions" style="min-width: 50px; text-align:right;">
+                                <small style="color:#666; display:block;">${getStar(t.p)}</small>
+                                <input class="time-input" type="number" min="0" step="5" value="${t.duration}" aria-label="Werktijd minuten" title="Werktijd (min)" data-kind="task" data-id="${t.id}" onchange="updateTaskDuration(${t.id}, this.value)">
+                                <small style="color:#666; display:block;">${runningTotal} min</small>
+                                <button type="button" class="btn-edit" onclick="editTask(${t.id})">Bewerk</button>
+                                <span onclick="removeTask(${t.id})" style="color:#c00; font-size:1.2em; font-weight:bold; cursor:pointer;">×</span>
+                            </div>
+                        `;
+                        listEl.appendChild(li);
+                    } else if (item.type === 'break') {
+                        const b = breakMap.get(item.id);
+                        if (!b) return;
+                        const minutes = Number.isFinite(b.minutes) ? b.minutes : 15;
+                        if (b.minutes !== minutes) {
+                            b.minutes = minutes;
+                            hadDefaults = true;
+                        }
+                        runningTotal += minutes;
+                        const li = document.createElement('li');
+                        li.className = 'task-card break-card draggable-item';
+                        li.setAttribute('data-id', b.id);
+                        li.setAttribute('data-type', 'break');
+                        li.innerHTML = `
+                            <div style="flex-grow:1; pointer-events:none;">
+                                <span class="tag" style="background:#b38600;">PAUZE</span>
+                                <strong>Pauze</strong>
+                            </div>
+                            <div class="task-actions" style="min-width: 50px; text-align:right;">
+                                <input class="time-input" type="number" min="0" step="5" value="${minutes}" aria-label="Pauze minuten" title="Pauze (min)" data-kind="break" data-id="${b.id}" onchange="updateBreakMinutes(${b.id}, this.value)">
+                                <small style="color:#666; display:block;">${runningTotal} min</small>
+                                <span onclick="removeBreak(${b.id})" style="color:#c00; font-size:1.2em; font-weight:bold; cursor:pointer;">×</span>
+                            </div>
+                        `;
+                        listEl.appendChild(li);
+                    }
+                });
+
+                if (actionOrder.length === 0) {
+                    listEl.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">Nog geen taken vandaag.</div>';
+                }
             }
 
+            if (hadDefaults) {
+                saveTasks();
+                saveBreaks();
+            }
+            updateTotalTime();
             initMatrixSortables();
             initListSortable();
+            updateHistoryUI(); // Ensure buttons are correct state on load
         }
 
         function renderIdeas() {
@@ -583,6 +1204,7 @@
             initIdeaSortable();
         }
 
+
         // --- SORTABLE JS CONFIGURATIE ---
 
         function initMatrixSortables() {
@@ -600,6 +1222,8 @@
         }
 
         function updateMatrixOrder() {
+            saveState(); // SAVE FOR UNDO BEFORE CHANGE APPLIES TO DATA
+            
             let newTasksArray = [];
             const scanBox = (qNum) => {
                 const box = document.querySelector(`.task-container[data-q="${qNum}"]`);
@@ -630,11 +1254,21 @@
                 delay: 100,
                 delayOnTouchOnly: true,
                 onEnd: function (evt) {
-                    const newIds = Array.from(listEl.querySelectorAll('.task-card')).map(el => parseInt(el.getAttribute('data-id')));
+                    saveState(); // SAVE FOR UNDO
+
+                    const newOrder = Array.from(listEl.querySelectorAll('.task-card')).map(el => ({
+                        type: el.getAttribute('data-type'),
+                        id: parseInt(el.getAttribute('data-id'))
+                    }));
+
+                    actionOrder = newOrder.filter(i => i.type === 'task' || i.type === 'break');
+                    saveActionOrder();
+
                     const q4Items = tasks.filter(t => t.q === 4);
                     const sortedNonQ4 = [];
-                    newIds.forEach(id => {
-                        const t = tasks.find(x => x.id === id);
+                    actionOrder.forEach(item => {
+                        if (item.type !== 'task') return;
+                        const t = tasks.find(x => x.id === item.id);
                         if(t) sortedNonQ4.push(t);
                     });
                     tasks = [...sortedNonQ4, ...q4Items];
@@ -653,6 +1287,8 @@
                 delay: 100,
                 delayOnTouchOnly: true,
                 onEnd: function (evt) {
+                    saveState(); // SAVE FOR UNDO
+                    
                     const newIds = Array.from(container.querySelectorAll('.idea-item')).map(el => parseInt(el.getAttribute('data-id')));
                     const newIdeas = [];
                     newIds.forEach(id => {
@@ -667,6 +1303,9 @@
 
         // Starten
         initQuote();
+        initMatrixCollapse();
+        initStartTime();
+        initIdeasCollapse();
         render();
         renderIdeas();
 
